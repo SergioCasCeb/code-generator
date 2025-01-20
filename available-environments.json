@@ -1,0 +1,17 @@
+{
+    "http": {
+        "javascript": {
+            "fetch": "",
+            "node-wot": ""
+        },
+        "python": {
+            "requests": ""
+        }
+    },
+    "modbus": {
+        "javascript": {
+            "modbus-serial": "",
+            "node-wot": ""
+        }
+    }
+}

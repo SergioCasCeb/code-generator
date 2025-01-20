@@ -1,0 +1,30 @@
+{
+  "name": "code-generator-tests",
+  "version": "1.0.0",
+  "type": "module",
+  "main": "index.js",
+  "scripts": {
+    "cli": "node ./cli.js"
+  },
+  "author": "",
+  "license": "ISC",
+  "description": "",
+  "dependencies": {
+    "@azure/identity": "^4.6.0",
+    "@google/generative-ai": "^0.21.0",
+    "@inquirer/prompts": "^7.2.3",
+    "@thing-description-playground/core": "^1.4.0",
+    "@thing-description-playground/defaults": "^1.4.0",
+    "@thingweb/td-utils": "^1.0.0",
+    "chalk": "^5.4.1",
+    "dotenv": "^16.4.7",
+    "groq-sdk": "^0.12.0",
+    "handlebars": "^4.7.8",
+    "inquirer-file-selector": "^0.6.1",
+    "json-schema-faker": "^0.5.8",
+    "mustache": "^4.2.0",
+    "nanospinner": "^1.2.2",
+    "openai": "^4.79.1",
+    "url-toolkit": "^2.2.5"
+  }
+}
