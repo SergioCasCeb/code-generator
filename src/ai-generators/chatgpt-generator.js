@@ -1,7 +1,7 @@
 import { AzureOpenAI } from "openai";
 import { DefaultAzureCredential } from "@azure/identity";
 import dotenv from "dotenv";
-dotenv.config();
+dotenv.config({path: "../.env"});
 
 const endpoint = process.env["AZURE_OPENAI_ENDPOINT"];
 const apiVersion = process.env["OPENAI_API_VERSION"]

@@ -1,12 +1,20 @@
 #!/usr/bin/env node
 
+import { Command } from "commander";
 import chalk from "chalk";
 import { input, select, editor } from '@inquirer/prompts';
 import fileSelector from 'inquirer-file-selector';
 import { createSpinner } from 'nanospinner';
-import { generateCode, getAffordanceType, getProgrammingLanguages, getLibraries } from '../src/code-generator.js';
+import { generateCode, getAffordanceType, getProgrammingLanguages, getLibraries } from '../src/lib/code-generator.js';
 import fs from 'fs';
 import path from "path";
+import { fileURLToPath } from 'url';
+
+//TODO: should the output file be in the project directory or in the current directory?
+/*
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+*/
 
 /**
  * Provide a user friendly message when the user exits the program and throw an error if the reason for the exit is not an ExitPromptError
@@ -261,6 +269,7 @@ async function getOutputType() {
 
 async function generateFile(affordance, operation, programmingLanguage, outputCode) {
 
+    // const projectDirectory = path.resolve(__dirname);
     const folderName = 'generator-output';
     let fileName;
 

@@ -2,16 +2,16 @@ import Handlebars from 'handlebars';
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
-import * as helpers from '../helpers/utilHelpers.js';
-import * as httpHelpers from '../helpers/protocols/httpHelpers.js';
-import * as modbusHelpers from '../helpers/protocols/modbusHelpers.js';
+import * as helpers from '../../helpers/utilHelpers.js';
+import * as httpHelpers from '../../helpers/protocols/httpHelpers.js';
+import * as modbusHelpers from '../../helpers/protocols/modbusHelpers.js';
 import URLToolkit from 'url-toolkit';
 import { addDefaults } from '@thing-description-playground/defaults';
 import { tdValidator } from '@thing-description-playground/core';
 import { detectProtocolSchemes } from '@thingweb/td-utils'
-import { generateChatGPTCode } from './ai-generators/chatgpt-generator.js';
-import { generateGeminiCode } from './ai-generators/gemini-generator.js';
-import { generateLlamaCode } from './ai-generators/llama-generator.js';
+import { generateChatGPTCode } from '../ai-generators/chatgpt-generator.js';
+import { generateGeminiCode } from '../ai-generators/gemini-generator.js';
+import { generateLlamaCode } from '../ai-generators/llama-generator.js';
 
 
 //Register all helpers
@@ -93,10 +93,10 @@ function getTemplate(language, library) {
     const templateName = `${language}-${library}`;
 
     let templatesDirectory = {
-        "javascript-fetch": path.resolve(__dirname, 'templates', 'javascript', 'fetch', 'template.hbs'),
-        "javascript-node-wot": path.resolve(__dirname, 'templates', 'javascript', 'node-wot', 'template.hbs'),
-        "javascript-modbus-serial": path.resolve(__dirname, 'templates', 'javascript', 'modbus-serial', 'template.hbs'),
-        "python-requests": path.resolve(__dirname, 'templates', 'python', 'requests', 'template.hbs'),
+        "javascript-fetch": path.resolve(__dirname, '../templates', 'javascript', 'fetch', 'template.hbs'),
+        "javascript-node-wot": path.resolve(__dirname, '../templates', 'javascript', 'node-wot', 'template.hbs'),
+        "javascript-modbus-serial": path.resolve(__dirname, '../templates', 'javascript', 'modbus-serial', 'template.hbs'),
+        "python-requests": path.resolve(__dirname, '../templates', 'python', 'requests', 'template.hbs'),
     }
 
     //Check if template directory exists
@@ -314,7 +314,7 @@ function getAbsoluteURL(baseURL, partialURL) {
 export function getProgrammingLanguages() {
 
     try {
-        const templateDir = path.resolve(__dirname, 'templates');
+        const templateDir = path.resolve(__dirname, '../templates');
         const languages = fs.readdirSync(templateDir);
 
         return languages;
@@ -332,7 +332,7 @@ export function getProgrammingLanguages() {
 export function getLibraries(language) {
 
     try {
-        const templateDir = path.resolve(__dirname, 'templates', language);
+        const templateDir = path.resolve(__dirname, '../templates', language);
         const libraries = fs.readdirSync(templateDir);
 
         return libraries
