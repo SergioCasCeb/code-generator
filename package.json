@@ -3,8 +3,11 @@
   "version": "1.0.0",
   "type": "module",
   "main": "index.js",
+  "bin": {
+    "generate-code": "./bin/cli.js"
+  },
   "scripts": {
-    "cli": "node ./cli.js"
+    "test": "test"
   },
   "author": "",
   "license": "ISC",

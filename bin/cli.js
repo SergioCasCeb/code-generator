@@ -4,7 +4,7 @@ import chalk from "chalk";
 import { input, select, editor } from '@inquirer/prompts';
 import fileSelector from 'inquirer-file-selector';
 import { createSpinner } from 'nanospinner';
-import { generateCode, getAffordanceType, getProgrammingLanguages, getLibraries } from './code-generator.js';
+import { generateCode, getAffordanceType, getProgrammingLanguages, getLibraries } from '../src/code-generator.js';
 import fs from 'fs';
 import path from "path";
 
@@ -264,12 +264,12 @@ async function generateFile(affordance, operation, programmingLanguage, outputCo
     const folderName = 'generator-output';
     let fileName;
 
-    if(programmingLanguage === 'python') {
+    if (programmingLanguage === 'python') {
         fileName = `${affordance}_${operation}.py`;
     }
-    else if( programmingLanguage === 'javascript') {
+    else if (programmingLanguage === 'javascript') {
         fileName = `${affordance}_${operation}.js`;
-    }else {
+    } else {
         fileName = `${affordance}_${operation}_${programmingLanguage}.txt`;
     }
 
@@ -284,9 +284,8 @@ async function generateFile(affordance, operation, programmingLanguage, outputCo
         if (err) {
             console.log(chalk.red('An error occurred while writing the file!'));
             process.exit(1);
-        }else {
-            console.log(chalk.blue
-                (`The file '${fileName}' was added to the '${folderName}' folder.`));
+        } else {
+            console.log(chalk.blue(`The file '${fileName}' was added to the '${folderName}' folder.`));
         }
     });
 }
@@ -324,7 +323,7 @@ async function runCLI() {
     //Get the AI tool if the generator type is AI
     if (isAI) {
         aiTool = await getAITool();
-    } 
+    }
     //Get the programming language
     programmingLanguage = await getProgrammingLanguage(isAI);
     //Get the library
@@ -350,9 +349,9 @@ async function runCLI() {
         const outputCode = await generateCode(generatorInputs, isAI, aiTool ? aiTool : null);
         setTimeout(() => {
             spinner.success(`Success: ${chalk.green('Code generated successfully!')}`)
-            if(outputType === 'file') {
+            if (outputType === 'file') {
                 generateFile(affordance, operation, programmingLanguage, outputCode);
-            }else {
+            } else {
                 console.log(`\n${outputCode}`);
             }
         }, 1000);
