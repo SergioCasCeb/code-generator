@@ -69,14 +69,14 @@ async function runOneLineCLI(options) {
 
         const fileContent = fs.readFileSync(options.td, 'utf8');
         const parsedTD = JSON.parse(fileContent);
-
+        
         const generatorInputs = {
             td: parsedTD,
             affordance: options.affordance,
             formIndex: options.formIndex,
             operation: options.operation,
-            programmingLanguage: options.language,
-            library: options.library
+            programmingLanguage: options.language.toLowerCase(),
+            library: options.library.toLowerCase()
         };
 
         const outputCode = await generateCode(generatorInputs, options.ai, options.tool ? options.tool : null);
