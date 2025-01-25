@@ -1,7 +1,12 @@
 import { AzureOpenAI } from "openai";
 import { DefaultAzureCredential } from "@azure/identity";
 import dotenv from "dotenv";
-dotenv.config({path: "../.env"});
+import path from 'path';
+import { fileURLToPath } from 'url';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+dotenv.config({ path: path.resolve(__dirname, '../../.env') });
 
 const endpoint = process.env["AZURE_OPENAI_ENDPOINT"];
 const apiVersion = process.env["OPENAI_API_VERSION"]
@@ -23,7 +28,7 @@ export async function generateChatGPTCode(generatorInputs) {
             { role: "user", content: generatorInputs },
         ],
 
-        max_tokens: 800,
+        // max_tokens: 800,
         temperature: 0.7,
         top_p: 0.95,
         frequency_penalty: 0,

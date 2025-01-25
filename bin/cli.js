@@ -5,16 +5,10 @@ import chalk from "chalk";
 import { input, select, editor } from '@inquirer/prompts';
 import fileSelector from 'inquirer-file-selector';
 import { createSpinner } from 'nanospinner';
-import { generateCode, getAffordanceType, getProgrammingLanguages, getLibraries } from '../src/lib/code-generator.js';
+import { generateCode } from '../src/lib/code-generator.js';
+import { getTDProtocols, getAvailableLanguages, getAvailableLibraries, getAffordanceType, generateFile } from '../src/util/util.js';
 import fs from 'fs';
 import path from "path";
-import { fileURLToPath } from 'url';
-
-//TODO: should the output file be in the project directory or in the current directory?
-/*
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
-*/
 
 /**
  * Provide a user friendly message when the user exits the program and throw an error if the reason for the exit is not an ExitPromptError
@@ -29,6 +23,86 @@ process.on('uncaughtException', (error) => {
 });
 
 
+/**************************/
+/* One-line CLI logic **/
+/**************************/
+const program = new Command();
+
+program
+    .name("generate-code")
+    .description("Generate protocol specific code snippets for Thing Descriptions")
+    .version('1.0.0')
+
+program
+    .option("-i, --interactive", "The interactive mode", false)
+    .option("-t, --td <path>", "Path to the Thing Description file")
+    .option("-a, --affordance <name>", "Affordance to use")
+    .option("-f, --form-index <index>", "Form index to use")
+    .option("-o, --operation <name>", "Operation to perform")
+    .option("-l, --language <name>", "Programming language")
+    .option("-L, --library <name>", "Library to use")
+    .option("--ai", "Use AI generation", false)
+    .option("--tool <name>", "AI tool to use (ChatGPT, Gemini, Llama)")
+    .option("-O, --output <type>", "Output type (console or file)", "console")
+    .action((options) => {
+        if (options.interactive) {
+            runInteractiveCLI();
+        } else {
+            runOneLineCLI(options);
+        }
+    });
+
+program.parse(process.argv);
+
+/**
+ * Run the one-line CLI
+ * @param { Object } options 
+ */
+async function runOneLineCLI(options) {
+    const spinner = createSpinner("Generating code...").start();
+    try {
+        const fileType = path.extname(options.td);
+
+        if (fileType !== '.json' && fileType !== '.jsonld' && fileType !== '.txt') {
+            throw new Error("Invalid file format! Please select a JSON, JSONLD or TXT file.");
+        }
+
+        const fileContent = fs.readFileSync(options.td, 'utf8');
+        const parsedTD = JSON.parse(fileContent);
+
+        const generatorInputs = {
+            td: parsedTD,
+            affordance: options.affordance,
+            formIndex: options.formIndex,
+            operation: options.operation,
+            programmingLanguage: options.language,
+            library: options.library
+        };
+
+        const outputCode = await generateCode(generatorInputs, options.ai, options.tool ? options.tool : null);
+        spinner.success(`Success: ${chalk.green('Code generated successfully!\n')}`);
+
+        if (options.output === 'file') {
+            generateFile(options.affordance, options.operation, options.language, outputCode);
+        } else {
+            console.log(outputCode);
+        }
+    } catch (error) {
+        spinner.error("Error: " + chalk.red(error.message));
+        process.exit(1);
+    }
+}
+
+
+
+/**************************/
+/* Interactive CLI Logic **/
+/**************************/
+
+/**
+ * Get the type of input for the TD
+ * @returns { String } tdInput
+ */
 async function tdInputType() {
     const tdInput = await select({
         message: 'How would you like to input your TD?',
@@ -47,6 +121,10 @@ async function tdInputType() {
     return tdInput;
 }
 
+/**
+ * Get the TD from a file
+ * @returns { Object } parsedTD
+ */
 async function getTDFile() {
     const filePath = await fileSelector({
         message: 'Select the path to your TD file:',
@@ -62,11 +140,12 @@ async function getTDFile() {
         if (fileType !== '.json' && fileType !== '.jsonld' && fileType !== '.txt') {
             console.log(chalk.red("Invalid file format! Please select a JSON, JSONLD or TXT file."));
             process.exit(1);
-        } else {
-            const fileContent = fs.readFileSync(filePath, 'utf8');
-            const parsedTD = JSON.parse(fileContent);
-            return parsedTD;
         }
+
+        const fileContent = fs.readFileSync(filePath, 'utf8');
+        const parsedTD = JSON.parse(fileContent);
+        return parsedTD;
+
     } catch (error) {
         if (error.name === 'SyntaxError') {
             console.log(chalk.red("Invalid JSON format! Please enter a valid TD."));
@@ -74,10 +153,14 @@ async function getTDFile() {
         else {
             console.log(chalk.red("An error occurred! Please try again."));
         }
+        process.exit(1);
     }
 }
 
-
+/**
+ * Get the TD from a text editor
+ * @returns { Object } parsedTD
+ */
 async function getTDEditor() {
 
     const td = await editor({
@@ -94,9 +177,15 @@ async function getTDEditor() {
         } else {
             console.log(chalk.red("An error occurred! Please try again."));
         }
+        process.exit(1);
     }
 }
 
+/**
+ * Get all the affordance options from the TD and return the selected affordance
+ * @param { Object } td 
+ * @returns { String } affordance
+ */
 async function getAffordanceOptions(td) {
 
     const properties = td.properties ? Object.keys(td.properties) : [];
@@ -122,6 +211,13 @@ async function getAffordanceOptions(td) {
     }
 }
 
+/**
+ * Get all the forms available for the selected affordance and return the selected form index
+ * @param { Object } td 
+ * @param { String } affordanceType 
+ * @param { String } affordance 
+ * @returns { String } formIndex
+ */
 async function getFormIndex(td, affordanceType, affordance) {
     const availableForms = td[affordanceType][affordance].forms;
 
@@ -147,6 +243,11 @@ async function getFormIndex(td, affordanceType, affordance) {
     }
 }
 
+/**
+ * Get the possbile operations for the selected affordance and return the selected operation
+ * @param { String } affordanceType 
+ * @returns { String } operation
+ */
 async function getOperation(affordanceType) {
 
     const operationList = {
@@ -171,6 +272,10 @@ async function getOperation(affordanceType) {
     return operation;
 }
 
+/**
+ * Get the generator type
+ * @returns { Boolean } isAI
+ */
 async function getGeneratorType() {
     const isAI = await select({
         message: 'Select a generator type:',
@@ -183,6 +288,10 @@ async function getGeneratorType() {
     return isAI;
 }
 
+/**
+ * Get the AI tool
+ * @returns { String } aiTool
+ */
 async function getAITool() {
     const aiTool = await select({
         message: 'Select an AI tool:',
@@ -196,7 +305,14 @@ async function getAITool() {
     return aiTool;
 }
 
-async function getProgrammingLanguage(isAI) {
+/**
+ * Get the available programming languages based on the selected TD protocols and return the selected programming language.
+ * If the generator type is AI, get the programming language as a text input
+ * @param { Boolean } isAI 
+ * @param { Array } tdProtocols 
+ * @returns { Array } [programmingLanguage, languageList]
+ */
+async function getProgrammingLanguage(isAI, tdProtocols) {
 
     if (isAI) {
         const programmingLanguage = await input({
@@ -204,9 +320,16 @@ async function getProgrammingLanguage(isAI) {
             message: 'Enter a programming language:',
         });
 
-        return programmingLanguage;
+        return [programmingLanguage, null];
     } else {
-        const availableLanguages = getProgrammingLanguages();
+        const languagesList = getAvailableLanguages(tdProtocols);
+        let availableLanguages = [];
+
+        languagesList.forEach((language) => {
+            availableLanguages.push(...Object.keys(language))
+        })
+
+        availableLanguages = [...new Set(availableLanguages)];
 
         if (availableLanguages && availableLanguages.length > 0) {
             const programmingLanguage = await select({
@@ -214,7 +337,7 @@ async function getProgrammingLanguage(isAI) {
                 choices: availableLanguages,
             });
 
-            return programmingLanguage;
+            return [programmingLanguage, languagesList];
         } else {
             console.log(chalk.red('No programming languages available!'));
             process.exit(1);
@@ -222,7 +345,15 @@ async function getProgrammingLanguage(isAI) {
     }
 }
 
-async function getLibrary(isAI, programmingLanguage) {
+/**
+ * Get the available libraries based on the selected programming language and return the selected library.
+ * If the generator type is AI, get the library as a text input
+ * @param { Boolean } isAI 
+ * @param { String } programmingLanguage 
+ * @param { Array } languageList 
+ * @returns { String } library
+ */
+async function getLibrary(isAI, programmingLanguage, languageList) {
 
     if (isAI) {
         const library = await input({
@@ -233,7 +364,7 @@ async function getLibrary(isAI, programmingLanguage) {
         return library;
     }
     else {
-        const availableLibraries = getLibraries(programmingLanguage);
+        const availableLibraries = getAvailableLibraries(programmingLanguage, languageList);
 
         if (availableLibraries && availableLibraries.length > 0) {
             const library = await select({
@@ -249,6 +380,10 @@ async function getLibrary(isAI, programmingLanguage) {
     }
 }
 
+/**
+ * Get the desired output type
+ * @returns { String } output
+ */
 async function getOutputType() {
     const output = await select({
         message: 'How would you like to output the code?',
@@ -267,52 +402,28 @@ async function getOutputType() {
     return output;
 }
 
-async function generateFile(affordance, operation, programmingLanguage, outputCode) {
-
-    // const projectDirectory = path.resolve(__dirname);
-    const folderName = 'generator-output';
-    let fileName;
-
-    if (programmingLanguage === 'python') {
-        fileName = `${affordance}_${operation}.py`;
-    }
-    else if (programmingLanguage === 'javascript') {
-        fileName = `${affordance}_${operation}.js`;
-    } else {
-        fileName = `${affordance}_${operation}_${programmingLanguage}.txt`;
-    }
-
-    if (!fs.existsSync(folderName)) {
-        fs.mkdirSync(folderName); // Create the folder if it doesn't exist
-        console.log(chalk.blue(`The Folder '${folderName}' was created.`));
-    }
-
-    const filePath = path.join(folderName, fileName);
-
-    fs.writeFile(filePath, outputCode, (err) => {
-        if (err) {
-            console.log(chalk.red('An error occurred while writing the file!'));
-            process.exit(1);
-        } else {
-            console.log(chalk.blue(`The file '${fileName}' was added to the '${folderName}' folder.`));
-        }
-    });
-}
-
-async function runCLI() {
-
-    const inputType = await tdInputType();
-
+/**
+ * Main function to run the interactive CLI
+ */
+async function runInteractiveCLI() {
+    
+    //Declare all necessary variables
     let inputTD;
     let affordance;
     let formIndex;
     let operation;
     let isAI = false;
     let aiTool;
+    let tdProtocols;
     let programmingLanguage;
+    let languageList;
     let library;
     let outputType = 'console';
 
+    //Get the type of input for the TD
+    const inputType = await tdInputType();
+
+    //Get the TD based on the input type
     if (inputType === 'file') {
         inputTD = await getTDFile();
     } else {
@@ -321,26 +432,40 @@ async function runCLI() {
 
     //Get the affordance
     affordance = await getAffordanceOptions(inputTD);
+
     //Get the affordance type
     const affordanceType = getAffordanceType(inputTD, affordance);
+
     //Get the form index
     formIndex = await getFormIndex(inputTD, affordanceType, affordance);
+
     //Get the operation
     operation = await getOperation(affordanceType);
-    //Get the generator type
-    isAI = await getGeneratorType();
+
+    //Get the TD protocols
+    tdProtocols = getTDProtocols(JSON.stringify(inputTD));
+
+    //Do not ask for the generator type if the TD protocols are not available in the templates
+    if (tdProtocols) {
+        //Get the generator type
+        isAI = await getGeneratorType();
+    } else {
+        isAI = true;
+    }
+
     //Get the AI tool if the generator type is AI
     if (isAI) {
         aiTool = await getAITool();
     }
+
     //Get the programming language
-    programmingLanguage = await getProgrammingLanguage(isAI);
+    [programmingLanguage, languageList] = await getProgrammingLanguage(isAI, tdProtocols);
+
     //Get the library
-    library = await getLibrary(isAI, programmingLanguage);
+    library = await getLibrary(isAI, programmingLanguage, languageList);
 
     //Get the output type
     outputType = await getOutputType();
-
 
     //Prepare the inputs for the code generator and generate the code
     const generatorInputs = {
@@ -352,24 +477,23 @@ async function runCLI() {
         library: library
     };
 
+    //Start the loading spinner
     const spinner = createSpinner('Generating Code...').start();
 
     try {
+        //Generate the code and stop the spinner if successful
         const outputCode = await generateCode(generatorInputs, isAI, aiTool ? aiTool : null);
-        setTimeout(() => {
-            spinner.success(`Success: ${chalk.green('Code generated successfully!')}`)
-            if (outputType === 'file') {
-                generateFile(affordance, operation, programmingLanguage, outputCode);
-            } else {
-                console.log(`\n${outputCode}`);
-            }
-        }, 1000);
+        spinner.success(`Success: ${chalk.green('Code generated successfully!')}`)
+        if (outputType === 'file') {
+            generateFile(affordance, operation, programmingLanguage, outputCode);
+        } else {
+            console.log(`\n${outputCode}`);
+        }
 
     } catch (error) {
+        //Stop the spinner and display the error message
         spinner.error(`Error: ${chalk.red(error.message)}`);
         process.exit(1);
     }
 
 }
-
-runCLI();

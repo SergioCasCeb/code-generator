@@ -19,6 +19,7 @@ async function {{toCamelCase (joinStr operation affordance)}}() {
         {{#if (equalTo operation 'readproperty')}}
         const res = await client.{{getModbusFunction form operation}}(address, {{getQuantity absoluteURL}});
         console.log("{{affordance}} value: ", res.data[0]);
+        return res.data[0];
         client.close();
         {{/if}}
         {{!--Output code for invoking an action or writing to a property --}}
@@ -31,9 +32,11 @@ async function {{toCamelCase (joinStr operation affordance)}}() {
         {{/if}}
         {{#if (or (equalTo (getModbusFunction form operation) 'writeCoil') (equalTo (getModbusFunction form operation) 'writeCoils'))}}
         console.log("{{affordance}} value: ", res.data["state"]);
+        return res.data["state"];
         {{/if}}
         {{#if (or (equalTo (getModbusFunction form operation) 'writeRegister') (equalTo (getModbusFunction form operation) 'writeRegisters'))}}
         console.log("{{affordance}} value: ", res.data["value"]);
+        return res.data["value"];
         {{/if}}
         client.close();
         {{/if}}

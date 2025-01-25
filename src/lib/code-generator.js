@@ -2,13 +2,13 @@ import Handlebars from 'handlebars';
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import URLToolkit from 'url-toolkit';
 import * as helpers from '../helpers/utilHelpers.js';
 import * as httpHelpers from '../helpers/protocols/httpHelpers.js';
 import * as modbusHelpers from '../helpers/protocols/modbusHelpers.js';
-import URLToolkit from 'url-toolkit';
 import { addDefaults } from '@thing-description-playground/defaults';
 import { tdValidator } from '@thing-description-playground/core';
-import { detectProtocolSchemes } from '@thingweb/td-utils'
+import { getAffordanceType } from '../util/util.js';
 import { generateChatGPTCode } from '../ai-generators/chatgpt-generator.js';
 import { generateGeminiCode } from '../ai-generators/gemini-generator.js';
 import { generateLlamaCode } from '../ai-generators/llama-generator.js';
@@ -41,13 +41,28 @@ const __dirname = path.dirname(__filename);
 export async function generateCode(userInputs, generateAI = false, aiTool) {
 
     //Basic input validation check
-    //TODO: Add individual validation checks for easier debugging
     if (!userInputs || (!userInputs.programmingLanguage || !userInputs.library || !userInputs.td || !userInputs.affordance || !userInputs.operation)) {
-        throw new Error("Invalid or missing inputs");
+        if (!userInputs.programmingLanguage) {
+            throw new Error("A programming language must be specified");
+        }
+        else if (!userInputs.library) {
+            throw new Error("A library must be specified");
+        }
+        else if (!userInputs.td) {
+            throw new Error("A Thing Description must be specified");
+        }
+        else if (!userInputs.affordance) {
+            throw new Error("An affordance must be specified");
+        }
+        else if (!userInputs.operation) {
+            throw new Error("An operation must be specified");
+        } else {
+            throw new Error("Invalid or missing inputs");
+        }
     }
 
     if (generateAI) {
-        if(!aiTool) {
+        if (!aiTool) {
             throw new Error("For the AI generation, an AI tool must be specified");
         }
 
@@ -70,7 +85,6 @@ export async function generateCode(userInputs, generateAI = false, aiTool) {
 
         // Compile the template with the filtered inputs
         const compiledTemplate = Handlebars.compile(template);
-
         return compiledTemplate(templateInputs);
     }
 }
@@ -87,31 +101,33 @@ export async function generateCode(userInputs, generateAI = false, aiTool) {
  * @returns { String } file - the content of the template file
  */
 function getTemplate(language, library) {
+    const filePath = path.resolve(__dirname, '../templates/templates-paths.json');
+    const templatesPaths = fs.readFileSync(filePath, 'utf8');
+    const templates = JSON.parse(templatesPaths);
+
     language = language.toLowerCase();
     library = library.toLowerCase();
 
-    const templateName = `${language}-${library}`;
+    let templatePath;
 
-    let templatesDirectory = {
-        "javascript-fetch": path.resolve(__dirname, '../templates', 'javascript', 'fetch', 'template.hbs'),
-        "javascript-node-wot": path.resolve(__dirname, '../templates', 'javascript', 'node-wot', 'template.hbs'),
-        "javascript-modbus-serial": path.resolve(__dirname, '../templates', 'javascript', 'modbus-serial', 'template.hbs'),
-        "python-requests": path.resolve(__dirname, '../templates', 'python', 'requests', 'template.hbs'),
+    Object.values(templates).forEach(value => {
+        if(value[language] && value[language][library]) {
+            templatePath = value[language][library];
+        }
+    });
+
+    if(templatePath) {
+        try {
+            const template = fs.readFileSync(templatePath, 'utf8');
+            return template;
+    
+        } catch (error) {
+    
+            throw new Error("An error occurred while reading the template file");
+        }
+    }else {
+        throw new Error("No available templates for the specified language and/or library");
     }
-
-    //Check if template directory exists
-    if (!templatesDirectory[templateName]) {
-        throw new Error("Template not found");
-    }
-
-    const file = fs.readFileSync(templatesDirectory[templateName], 'utf8');
-
-    //check if file is empty
-    if (!file) {
-        throw new Error("Template is empty");
-    }
-
-    return file;
 }
 
 /**
@@ -134,7 +150,6 @@ async function getTemplateInputs(td, affordance, operation, formIndex) {
     }
 
     //add defaults to the td, to assure that all forms have an operation and contentType
-
     const isValid = await validateTD(td);
 
     if (isValid) {
@@ -192,39 +207,6 @@ async function validateTD(td) {
     }
 }
 
-/*******************************/
-/****** Utility functions *******/
-/*******************************/
-
-/**
- * Get the affordance type based on the affordance name (property, action, event)
- * @param { Object } td 
- * @param { String } affordance 
- * @returns { String } - the affordance type
- */
-export function getAffordanceType(td, affordance) {
-    let affordanceType;
-    for (const key in td) {
-        if (td.hasOwnProperty(key)) {
-            const value = td[key];
-
-            if (typeof value === 'object' && value !== null) {
-                if (affordance in value) {
-                    affordanceType = key;
-                }
-            }
-        }
-    }
-
-    if (affordanceType) {
-        return affordanceType;
-    }
-    else {
-        throw new Error(`The affordance ${affordance} was not found in the Thing Description`);
-    }
-}
-
-//TODO: Improve this function to retrieve possible protocols if there are multliple forms with the same operation
 /**
  * Validate that the given operation belongs to the given form. If no form given look for the form with the given operation.
  * @param { Array } forms 
@@ -305,44 +287,4 @@ function getAbsoluteURL(baseURL, partialURL) {
     const absoluteURL = URLToolkit.buildAbsoluteURL(base, partial);
 
     return absoluteURL;
-}
-
-/**
- * Gets the list of available programming languages based on the templates folders
- * @returns { Array } languages
- */
-export function getProgrammingLanguages() {
-
-    try {
-        const templateDir = path.resolve(__dirname, '../templates');
-        const languages = fs.readdirSync(templateDir);
-
-        return languages;
-
-    } catch (error) {
-        throw new Error("The templates directory could not be found or is empty");
-    }
-}
-
-/**
- * Gets the list of available libraries based on the folders inside each programming language foder
- * @param { string } language 
- * @returns { Array } libraries
- */
-export function getLibraries(language) {
-
-    try {
-        const templateDir = path.resolve(__dirname, '../templates', language);
-        const libraries = fs.readdirSync(templateDir);
-
-        return libraries
-
-    } catch (error) {
-        throw new Error("There are no available templates for the specified language");
-    }
-}
-
-//TODO: Improve this function to get the protocol from the TD
-export function getProtocol(td) {
-    return detectProtocolSchemes(td);
 }
