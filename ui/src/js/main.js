@@ -342,6 +342,12 @@ function resetInputs() {
     generatorToolSelect.value = "";
     outputCode.value = "";
     tdInput.value = "";
+
+    apiKeyWrapper.classList.add("hidden");
+    languageInput.classList.add("hidden");
+    libraryInput.classList.add("hidden");
+    languageSelectWrapper.classList.remove("hidden");
+    librarySelectWrapper.classList.remove("hidden");
 }
 
 async function generateCode(generatorInputs, isAI, aiTool) {
@@ -355,8 +361,7 @@ async function generateCode(generatorInputs, isAI, aiTool) {
 
     const generatedCode = await res.json();
 
-    console.log(generatedCode);
-    
+    // console.log(generatedCode);
 
     return generatedCode;
 }
