@@ -24,7 +24,7 @@
     npm link
     ```
 
-    This allows you to run the `generate-code` command from anywhere in your terminal.
+    This allows you to run the `generate-code` command anywhere in your terminal.
 
 ## UI Installation
 
@@ -40,7 +40,7 @@
     npm install
     ```
 
-3. Build the project with webpack:
+3. Build the project with Webpack:
 
     ```bash
     npm run build
