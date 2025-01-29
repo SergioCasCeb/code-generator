@@ -30,5 +30,8 @@
     "nanospinner": "^1.2.2",
     "openai": "^4.79.1",
     "url-toolkit": "^2.2.5"
+  },
+  "devDependencies": {
+    "nodemon": "^3.1.9"
   }
 }

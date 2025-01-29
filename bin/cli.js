@@ -6,7 +6,7 @@ import { input, select, editor } from '@inquirer/prompts';
 import fileSelector from 'inquirer-file-selector';
 import { createSpinner } from 'nanospinner';
 import { generateCode } from '../src/lib/code-generator.js';
-import { getTDProtocols, getAvailableLanguages, getAvailableLibraries, getAffordanceType, generateFile } from '../src/util/util.js';
+import { getTDProtocols, getAvailableLanguages, getAvailableLibraries, getAffordanceType, generateFile, parseTD, getTDAffordances, getFormIndexes, getOperations } from '../src/util/util.js';
 import fs from 'fs';
 import path from "path";
 
@@ -68,8 +68,8 @@ async function runOneLineCLI(options) {
         }
 
         const fileContent = fs.readFileSync(options.td, 'utf8');
-        const parsedTD = JSON.parse(fileContent);
-        
+        const parsedTD = parseTD(fileContent);
+
         const generatorInputs = {
             td: parsedTD,
             affordance: options.affordance,
@@ -143,16 +143,11 @@ async function getTDFile() {
         }
 
         const fileContent = fs.readFileSync(filePath, 'utf8');
-        const parsedTD = JSON.parse(fileContent);
+        const parsedTD = parseTD(fileContent);
         return parsedTD;
 
     } catch (error) {
-        if (error.name === 'SyntaxError') {
-            console.log(chalk.red("Invalid JSON format! Please enter a valid TD."));
-        }
-        else {
-            console.log(chalk.red("An error occurred! Please try again."));
-        }
+        console.log("Error: " + chalk.red(error.message));
         process.exit(1);
     }
 }
@@ -168,15 +163,11 @@ async function getTDEditor() {
     });
 
     try {
-        const parsedTD = JSON.parse(td);
+        const parsedTD = parseTD(td);
         return parsedTD;
     }
     catch (error) {
-        if (error.name === 'SyntaxError') {
-            console.log(chalk.red("Invalid JSON format! Please enter a valid TD."));
-        } else {
-            console.log(chalk.red("An error occurred! Please try again."));
-        }
+        console.log("Error: " + chalk.red(error.message));
         process.exit(1);
     }
 }
@@ -187,27 +178,19 @@ async function getTDEditor() {
  * @returns { String } affordance
  */
 async function getAffordanceOptions(td) {
+    try {
+        const affordanceOptions = getTDAffordances(td);
 
-    const properties = td.properties ? Object.keys(td.properties) : [];
-    const actions = td.actions ? Object.keys(td.actions) : [];
-    const events = td.events ? Object.keys(td.events) : [];
-
-    const affordanceOptions = [
-        ...properties.map(property => ({ name: property, value: property })),
-        ...actions.map(action => ({ name: action, value: action })),
-        ...events.map(event => ({ name: event, value: event }))
-    ];
-
-    if (affordanceOptions.length === 0) {
-        console.log(chalk.red('Invalid or empty TD! Please provide a valid TD with properties, actions or events.'));
-        process.exit(1);
-    } else {
         const affordance = await select({
             message: 'Select an affordance:',
             choices: affordanceOptions,
         });
 
         return affordance;
+
+    } catch (error) {
+        console.log("Error: " + chalk.red(error.message));
+        process.exit(1);
     }
 }
 
@@ -219,15 +202,13 @@ async function getAffordanceOptions(td) {
  * @returns { String } formIndex
  */
 async function getFormIndex(td, affordanceType, affordance) {
-    const availableForms = td[affordanceType][affordance].forms;
-
-    if (availableForms && availableForms.length > 0) {
-        const availableIndexes = Array.from(availableForms.keys());
+    try {
+        const availableForms = getFormIndexes(td, affordanceType, affordance) || [];
         const emptyForm = [{ name: 'None', value: null, description: "Do not want to specify any form!" }];
 
         const formIndexOptions = [
             ...emptyForm,
-            ...availableIndexes.map(index => ({ name: index, value: index }))
+            ...availableForms.map((index) => { return { name: index, value: index } })
         ];
 
         const formIndex = await select({
@@ -237,8 +218,8 @@ async function getFormIndex(td, affordanceType, affordance) {
 
         return formIndex;
 
-    } else {
-        console.log(chalk.red('No forms available for the selected affordance!'));
+    } catch (error) {
+        console.log("Error: " + chalk.red(error.message));
         process.exit(1);
     }
 }
@@ -248,28 +229,28 @@ async function getFormIndex(td, affordanceType, affordance) {
  * @param { String } affordanceType 
  * @returns { String } operation
  */
-async function getOperation(affordanceType) {
+async function getOperation(td, affordanceType, affordance, formIndex) {
 
-    const operationList = {
-        properties: [
-            { name: 'readproperty', value: 'readproperty' },
-            { name: 'writeproperty', value: 'writeproperty' },
-            { name: 'observeproperty/unobserveproperty', value: 'observeproperty' }
-        ],
-        actions: [{ name: 'invokeaction', value: 'invokeaction' }],
-        events: [{ name: 'subscribeevent/unsubscribeevent', value: 'subscribeevent' }]
+    try {
+        const availableOperations = getOperations(td, affordanceType, affordance, formIndex);
+
+        if (availableOperations.length === 1) {
+            console.log(`${chalk.green.bold('✓')} ${chalk.bold('Select an operation:')} ${chalk.cyan(availableOperations[0])}`);
+            return availableOperations[0];
+        }
+        else {
+            const operation = await select({
+                message: 'Select an operation:',
+                choices: availableOperations,
+            });
+
+            return operation;
+        }
+
+    } catch (error) {
+        console.log("Error: " + chalk.red(error.message));
+        process.exit(1);
     }
-
-    const operationOptions = [
-        ...operationList[affordanceType]
-    ]
-
-    const operation = await select({
-        message: 'Select an operation:',
-        choices: operationOptions,
-    });
-
-    return operation;
 }
 
 /**
@@ -406,7 +387,7 @@ async function getOutputType() {
  * Main function to run the interactive CLI
  */
 async function runInteractiveCLI() {
-    
+
     //Declare all necessary variables
     let inputTD;
     let affordance;
@@ -440,7 +421,7 @@ async function runInteractiveCLI() {
     formIndex = await getFormIndex(inputTD, affordanceType, affordance);
 
     //Get the operation
-    operation = await getOperation(affordanceType);
+    operation = await getOperation(inputTD, affordanceType, affordance, formIndex);
 
     //Get the TD protocols
     tdProtocols = getTDProtocols(JSON.stringify(inputTD));

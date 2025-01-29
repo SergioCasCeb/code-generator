@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Code Generator</title>
+
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Josefin+Sans:ital,wght@0,100..700;1,100..700&display=swap"
+        rel="stylesheet">
+
+    <!-- Font Awesome -->
+    <script src="https://kit.fontawesome.com/d66d421276.js" crossorigin="anonymous"></script>
+</head>
+
+<body>
+    <header class="header">
+        <div class="container">
+            <div class="navbar">
+                <div class="navbar__logo">
+                    <a href="#">
+                        <img src="./assets/img/thingweb_logo_no_letters.svg" alt="Thingweb logo">
+                        <p>THINGWEB</p>
+                    </a>
+                </div>
+                <div class="navbar__title">
+                    <h1>Code Generator</h1>
+                </div>
+                <div class="navbar__links">
+                    <a href="#"><i class="fa-brands fa-github"></i></a>
+                </div>
+            </div>
+        </div>
+    </header>
+    <main>
+        <div class="container">
+            <div class="code-generator">
+                <form class="input" action="#" id="inputs-form">
+                    <textarea name="input-td" id="input-td" class="input__td" required></textarea>
+                    <div class="input__options">
+                        <div class="form-field">
+                            <label for="affordance">Affordance:</label>
+                            <div class="select-wrapper">
+                                <select name="affordance" id="affordance" disabled required>
+                                    <option value="" disabled selected>Select an affordance</option>
+                                </select>
+                                <i class="fa-solid fa-angle-down"></i>
+                            </div>
+                        </div>
+
+                        <div class="form-field">
+                            <label for="form-index">Form Index: <span>(optional)</span></label>
+                            <div class="select-wrapper">
+                                <select name="form-index" id="form-index" disabled>
+                                    <option value="" selected>Any</option>
+                                </select>
+                                <i class="fa-solid fa-angle-down"></i>
+                            </div>
+                        </div>
+
+                        <div class="form-field">
+                            <label for="operation">Operation:</label>
+                            <div class="select-wrapper">
+                                <select name="operation" id="operation" required disabled>
+                                    <option value="" disabled selected>Select an operation</option>
+                                </select>
+                                <i class="fa-solid fa-angle-down"></i>
+                            </div>
+                        </div>
+
+                        <hr>
+
+                        <p class="disclaimer">If you can't find the language or library you are looking for, utilize
+                            the AI Generator! </p>
+                        <div class="form-field">
+                            <label for="generator-type">Generator Type:</label>
+                            <div class="select-wrapper">
+                                <select name="generator-type" id="generator-type" disabled required>
+                                    <option value="" disabled selected>Select a generator</option>
+                                    <option value="deterministic">Deterministic</option>
+                                    <option value="ai">AI</option>
+                                </select>
+                                <i class="fa-solid fa-angle-down"></i>
+                            </div>
+                        </div>
+
+                        <div class="form-field hidden" id="generator-tool-wrapper">
+                            <label for="generator-tool">Tool:</label>
+                            <div class="select-wrapper">
+                                <select name="generator-tool" id="generator-tool" disabled>
+                                    <option value="" disabled selected>Select a tool</option>
+                                    <option value="chatgpt">ChatGPT</option>
+                                    <option value="gemini">Gemini</option>
+                                    <option value="llama">Llama</option>
+                                </select>
+                                <i class="fa-solid fa-angle-down"></i>
+                            </div>
+                        </div>
+
+                        <div class="form-field hidden" id="api-key-wrapper">
+                            <label for="api-key">API Key:</label>
+                            <input type="text" name="api-key" id="api-key" placeholder="Enter your API Key" disabled>
+                        </div>
+
+                        <div class="form-field">
+                            <label for="language">Language:</label>
+                            <div class="select-wrapper" id="language-select-wrapper">
+                                <select name="language" id="language-select" class="language-select" required>
+                                    <option value="" disabled selected>Select a language</option>
+                                    <option value="js">js</option>
+                                </select>
+                                <i class="fa-solid fa-angle-down"></i>
+                            </div>
+                            <input type="text" name="language" id="language-input" class="language-input hidden"
+                                placeholder="Enter a language" disabled>
+                        </div>
+
+                        <div class="form-field">
+                            <label for="library">Library:</label>
+                            <div class="select-wrapper" id="library-select-wrapper">
+                                <select name="library" id="library-select" class="library-select" required>
+                                    <option value="" disabled selected>Select a library</option>
+                                    <option value="axios">axios</option>
+                                </select>
+                                <i class="fa-solid fa-angle-down"></i>
+                            </div>
+                            <input type="text" name="library" id="library-input" class="library-input hidden"
+                                placeholder="Enter a library" disabled>
+                        </div>
+
+                        <div class="btns">
+                            <button type="reset" class="btn btn-clear">Clear</button>
+                            <button type="submit" class="btn btn-generate">Generate</button>
+                        </div>
+                    </div>
+                </form>
+                <div class="output">
+                    <textarea name="output-code" id="output-code" class="output__code"></textarea>
+                </div>
+            </div>
+        </div>
+    </main>
+</body>
+
+</html>

@@ -39,7 +39,6 @@ const __dirname = path.dirname(__filename);
  * @returns { String } - the generated code
  */
 export async function generateCode(userInputs, generateAI = false, aiTool) {
-
     //Basic input validation check
     if (!userInputs || (!userInputs.programmingLanguage || !userInputs.library || !userInputs.td || !userInputs.affordance || !userInputs.operation)) {
         if (!userInputs.programmingLanguage) {
@@ -101,32 +100,38 @@ export async function generateCode(userInputs, generateAI = false, aiTool) {
  * @returns { String } file - the content of the template file
  */
 function getTemplate(language, library) {
+    
     const filePath = path.resolve(__dirname, '../templates/templates-paths.json');
-    const templatesPaths = fs.readFileSync(filePath, 'utf8');
-    const templates = JSON.parse(templatesPaths);
 
-    language = language.toLowerCase();
-    library = library.toLowerCase();
+    try {
 
-    let templatePath;
+        const templatesPaths = fs.readFileSync(filePath, 'utf8');
+        const templates = JSON.parse(templatesPaths);
 
-    Object.values(templates).forEach(value => {
-        if(value[language] && value[language][library]) {
-            templatePath = value[language][library];
+        language = language.toLowerCase();
+        library = library.toLowerCase();
+
+        const templatePath = Object.values(templates).find(value => 
+            value[language] && value[language][library]
+        )?.[language]?.[library];
+
+
+        if (!templatePath) {
+            throw new Error("No available templates for the specified language and/or library");
         }
-    });
 
-    if(templatePath) {
-        try {
-            const template = fs.readFileSync(templatePath, 'utf8');
-            return template;
-    
-        } catch (error) {
-    
-            throw new Error("An error occurred while reading the template file");
+        const templatePathResolved = path.resolve(__dirname, '../../', templatePath);
+        const template = fs.readFileSync(templatePathResolved, 'utf8');
+        return template;
+
+    } catch (error) {
+        if (error instanceof SyntaxError) {
+            throw new Error('Invalid templates configuration file');
         }
-    }else {
-        throw new Error("No available templates for the specified language and/or library");
+        if (error.code === 'ENOENT') {
+            throw new Error(`File not found: ${error.path}`);
+        }
+        throw new Error(`Failed to load template: ${error.message}`);
     }
 }
 
@@ -250,12 +255,10 @@ function getForm(forms, operation, formIndex) {
         if (forms.length > 0) {
             forms.forEach(form => {
                 if (typeof form["op"] === 'object' && form["op"].includes(operation)) {
-
                     formToUse = form;
                 }
 
                 if (typeof form["op"] === 'string' && form["op"] === operation) {
-
                     formToUse = form;
                 }
             })

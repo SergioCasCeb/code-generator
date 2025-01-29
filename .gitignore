@@ -1,11 +1,17 @@
 # Ignore node_modules directory
-node_modules/
+node_modules
 
 # Ignore environment variable files
 .env
 
+# Ignore the dist directory
+dist
+
 # Ignore the generator output directory
-generator-output/
+generator-output
 
 # Ignore my testing file
 test-handlerbars.js
+
+#ignore the css map file
+*.css.map
