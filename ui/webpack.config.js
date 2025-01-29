@@ -86,6 +86,7 @@ module.exports = (env, argv) => {
                 title: 'Webpack App',
                 filename: 'index.html',
                 template: 'src/template.html',
+                favicon: 'src/assets/img/favicon.ico',
             }),
             new MiniCssExtractPlugin({
                 filename: isDevMode ? '[name].css' : '[name].[contenthash].css',
