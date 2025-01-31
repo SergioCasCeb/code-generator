@@ -14,9 +14,14 @@ const librarySelectWrapper = document.getElementById("library-select-wrapper");
 const librarySelect = document.getElementById("library-select");
 const libraryInput = document.getElementById("library-input");
 
-
 const tdInput = document.getElementById("input-td");
 const outputCode = document.getElementById("output-code");
+
+const popover = document.getElementById("popover");
+const errorMsg = document.getElementById("error-msg");
+const loadingBar = document.getElementById("loading-bar");
+
+const submitBtn = document.getElementById("submit-btn");
 
 let affordanceSelect = document.getElementById("affordance");
 let formIndexSelect = document.getElementById("form-index");
@@ -29,7 +34,7 @@ let formIndex = formIndexSelect.value;
 let protocols = [];
 
 document.addEventListener("DOMContentLoaded", () => {
-    checkGeneratorType();
+    resetInputs();
 });
 
 tdInput.addEventListener("input", () => {
@@ -41,7 +46,7 @@ tdInput.addEventListener("input", () => {
         populateLanguages(protocols);
 
     } catch (error) {
-        resetInputs();
+        resetInputs(false);
         return;
     }
 
@@ -55,7 +60,7 @@ affordanceSelect.addEventListener("change", () => {
         populateOperations(parsedTD, affordanceType, affordance, formIndex);
 
     } catch (error) {
-        console.error(error.message);
+        logError(error);
     }
 });
 
@@ -65,7 +70,7 @@ formIndexSelect.addEventListener("change", () => {
         populateOperations(parsedTD, affordanceType, affordance, formIndex);
 
     } catch (error) {
-        console.error(error.message);
+        logError(error);
     }
 });
 
@@ -101,11 +106,17 @@ inputsForm.addEventListener("submit", async (e) => {
             library: inputsData["library"],
         };
 
+        submitBtn.textContent = "Generating...";
         const generatedCode = await generateCode(generatorInputs, isAI, aiTool);
-        outputCode.value = generatedCode;
+
+        if(generatedCode) {
+            outputCode.value = generatedCode;
+        }
 
     } catch (error) {
-        console.log(error.message);
+        logError(error);
+    } finally { 
+        submitBtn.textContent = "Generate";
     }
 });
 
@@ -214,7 +225,7 @@ function populateFormIndexes(td, type) {
 
         formIndexSelect.disabled = false;
     } catch (error) {
-        console.error(error.message);
+        logError(error);
     }
 
 
@@ -245,7 +256,7 @@ function populateOperations(td, type) {
         operationSelect.disabled = false;
 
     } catch (error) {
-        console.error(error.message);
+        logError(error);
     }
 }
 
@@ -263,10 +274,10 @@ function getProtocols(td) {
             generatorSelect.options[1].disabled = true;
         }
 
-        toogleSelectInputs(generatorSelect.value);
+        checkGeneratorType();
 
     } catch (error) {
-        console.error(error.message);
+        logError(error);
     }
 }
 
@@ -289,7 +300,7 @@ function populateLanguages(protocols) {
         });
 
     } catch (error) {
-        console.error(error.message);
+        logError(error);
     }
 }
 
@@ -316,11 +327,11 @@ function populateLibraries(protocols, selectedLanguage) {
         librarySelect.disabled = false;
 
     } catch (error) {
-        console.error(error.message);
+        logError(error);
     }
 }
 
-function resetInputs() {
+function resetInputs(allValues = true) {
     affordanceSelect.disabled = true;
     formIndexSelect.disabled = true;
     operationSelect.disabled = true;
@@ -341,7 +352,9 @@ function resetInputs() {
     libraryInput.value = "";
     generatorToolSelect.value = "";
     outputCode.value = "";
-    tdInput.value = "";
+    if(allValues){
+        tdInput.value = "";
+    }
 
     apiKeyWrapper.classList.add("hidden");
     languageInput.classList.add("hidden");
@@ -351,18 +364,40 @@ function resetInputs() {
 }
 
 async function generateCode(generatorInputs, isAI, aiTool) {
-    const res = await fetch('/api/generate', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({ generatorInputs, isAI, aiTool })
-    });
+    try {
+        const res = await fetch('/api/generate', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ generatorInputs, isAI, aiTool })
+        });
+        
+        if(res.status !== 200) {
+            throw new Error("An error occurred while trying to connect to the server. Please try again later.");
+        }
 
-    const generatedCode = await res.json();
+        const generatedCode = await res.json();
 
-    // console.log(generatedCode);
+        if (generatedCode.error) {
+            throw new Error(generatedCode.error);
+        }else {
+            return generatedCode;
+        }
 
-    return generatedCode;
+    } catch (error) {
+        logError(error);
+    }
+}
+
+function logError(error) {
+    popover.showPopover();
+    errorMsg.innerText = error.message;
+    loadingBar.classList.add("loading");
+
+    setTimeout(() => {
+        popover.hidePopover();
+        loadingBar.classList.remove("loading");
+    }, 5150);
 }
 

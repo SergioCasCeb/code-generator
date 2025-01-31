@@ -22,8 +22,8 @@ app.post('/api/generate', async (req, res) => {
         res.send(JSON.stringify(generatedCode));
 
     } catch (error) {
-        console.log(error.message);
-
+        // console.log(error.message);
+        res.send(JSON.stringify({ error: error.message }));
     }
 });
 

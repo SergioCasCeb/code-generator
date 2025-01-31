@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Code Generator</title>
+    <title>WoT Code Generator</title>
 
     <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -28,7 +28,7 @@
                     </a>
                 </div>
                 <div class="navbar__title">
-                    <h1>Code Generator</h1>
+                    <h1>WoT Code Generator</h1>
                 </div>
                 <div class="navbar__links">
                     <a href="#"><i class="fa-brands fa-github"></i></a>
@@ -40,7 +40,10 @@
         <div class="container">
             <div class="code-generator">
                 <form class="input" action="#" id="inputs-form">
-                    <textarea name="input-td" id="input-td" class="input__td" required></textarea>
+                    <div id="input-td-wrapper" class="input__td">
+                        <label for="input-td">Input TD:</label>
+                        <textarea name="input-td" id="input-td" class="td-textarea" required></textarea>
+                    </div>
                     <div class="input__options">
                         <div class="form-field">
                             <label for="affordance">Affordance:</label>
@@ -134,16 +137,22 @@
 
                         <div class="btns">
                             <button type="reset" class="btn btn-clear">Clear</button>
-                            <button type="submit" class="btn btn-generate">Generate</button>
+                            <button type="submit" class="btn btn-generate" id="submit-btn">Generate</button>
                         </div>
                     </div>
                 </form>
                 <div class="output">
+                    <label for="output-code">Code Output:</label>
                     <textarea name="output-code" id="output-code" class="output__code"></textarea>
                 </div>
             </div>
         </div>
     </main>
+    <div id="popover" class="popover" popover>
+        <p id="error-msg"></p>
+        <p class="notice">This window will close automatically in 5 seconds. Alternatively you can click anywhere to close it.</p>
+        <div class="loading-bar" id="loading-bar"></div>
+    </div>
 </body>
 
 </html>

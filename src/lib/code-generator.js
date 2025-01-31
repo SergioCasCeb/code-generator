@@ -60,31 +60,36 @@ export async function generateCode(userInputs, generateAI = false, aiTool) {
         }
     }
 
-    if (generateAI) {
-        if (!aiTool) {
-            throw new Error("For the AI generation, an AI tool must be specified");
+    try {
+        if (generateAI) {
+            if (!aiTool) {
+                throw new Error("For the AI generation, an AI tool must be specified");
+            }
+
+            if (aiTool === "chatgpt") {
+                return generateChatGPTCode(JSON.stringify(userInputs));
+            }
+            else if (aiTool === "gemini") {
+                return generateGeminiCode(JSON.stringify(userInputs));
+            }
+            else if (aiTool === "llama") {
+                return generateLlamaCode(JSON.stringify(userInputs));
+            }
+            else {
+                throw new Error("The specified AI tool is not supported");
+            }
+
+        } else {
+            const template = getTemplate(userInputs.programmingLanguage, userInputs.library);
+            const templateInputs = await getTemplateInputs(userInputs.td, userInputs.affordance, userInputs.operation, userInputs.formIndex);
+
+            // Compile the template with the filtered inputs
+            const compiledTemplate = Handlebars.compile(template);
+            return compiledTemplate(templateInputs);
         }
 
-        if (aiTool === "chatgpt") {
-            return generateChatGPTCode(JSON.stringify(userInputs));
-        }
-        else if (aiTool === "gemini") {
-            return generateGeminiCode(JSON.stringify(userInputs));
-        }
-        else if (aiTool === "llama") {
-            return generateLlamaCode(JSON.stringify(userInputs));
-        }
-        else {
-            throw new Error("The specified AI tool is not supported");
-        }
-
-    } else {
-        const template = getTemplate(userInputs.programmingLanguage, userInputs.library);
-        const templateInputs = await getTemplateInputs(userInputs.td, userInputs.affordance, userInputs.operation, userInputs.formIndex);
-
-        // Compile the template with the filtered inputs
-        const compiledTemplate = Handlebars.compile(template);
-        return compiledTemplate(templateInputs);
+    } catch (error) {
+        throw new Error(`Failed to generate code: ${error.message}`);
     }
 }
 
@@ -100,7 +105,7 @@ export async function generateCode(userInputs, generateAI = false, aiTool) {
  * @returns { String } file - the content of the template file
  */
 function getTemplate(language, library) {
-    
+
     const filePath = path.resolve(__dirname, '../templates/templates-paths.json');
 
     try {
@@ -111,7 +116,7 @@ function getTemplate(language, library) {
         language = language.toLowerCase();
         library = library.toLowerCase();
 
-        const templatePath = Object.values(templates).find(value => 
+        const templatePath = Object.values(templates).find(value =>
             value[language] && value[language][library]
         )?.[language]?.[library];
 
