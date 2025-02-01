@@ -124,7 +124,7 @@ No restrictions when using AI generation.
 
 #### Console Output
 
-The generated code is printed directly to the console. AI generation add markdown syntax to the code.
+The generated code is printed directly to the console in simple text format. AI generation adds markdown syntax to the code.
 
 #### File Output
 
