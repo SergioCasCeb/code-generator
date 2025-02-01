@@ -27,11 +27,13 @@ let affordanceSelect = document.getElementById("affordance");
 let formIndexSelect = document.getElementById("form-index");
 let operationSelect = document.getElementById("operation");
 
+let previousTD = {};
 let parsedTD = {};
 let affordanceType = "";
 let affordance = affordanceSelect.value;
 let formIndex = formIndexSelect.value;
 let protocols = [];
+
 
 document.addEventListener("DOMContentLoaded", () => {
     resetInputs();
@@ -39,17 +41,33 @@ document.addEventListener("DOMContentLoaded", () => {
 
 tdInput.addEventListener("input", () => {
     try {
+
         parsedTD = parseTD(tdInput.value);
-        const affordanceOptions = getTDAffordances(parsedTD);
-        populateAffordances(affordanceOptions);
-        getProtocols(parsedTD);
-        populateLanguages(protocols);
+
+        const tdHasChanged = JSON.stringify(parsedTD) !== JSON.stringify(previousTD);
+
+        //Check if the TD has changed or the affordance and generator select values are empty
+        if (tdHasChanged || affordanceSelect.value === "" || generatorSelect.value === "") {
+            resetInputs(false, !tdHasChanged);
+            const affordanceOptions = getTDAffordances(parsedTD);
+            populateAffordances(affordanceOptions);
+            if(!generatorSelect.value) {
+                getProtocols(parsedTD);
+            }
+            if (protocols && tdHasChanged) {
+                populateLanguages(protocols);
+            }
+            previousTD = parsedTD;
+        }
+        checkInputs();
 
     } catch (error) {
-        resetInputs(false);
-        return;
-    }
+        if (tdInput.value === "") {
+            resetInputs();
+        }
 
+        disableInputs();
+    }
 })
 
 affordanceSelect.addEventListener("change", () => {
@@ -81,6 +99,7 @@ generatorSelect.addEventListener("change", () => {
 
 languageSelect.addEventListener("change", () => {
     populateLibraries(protocols, languageSelect.value);
+    librarySelect.disabled = false;
 });
 
 /**
@@ -109,13 +128,13 @@ inputsForm.addEventListener("submit", async (e) => {
         submitBtn.textContent = "Generating...";
         const generatedCode = await generateCode(generatorInputs, isAI, aiTool);
 
-        if(generatedCode) {
+        if (generatedCode) {
             outputCode.value = generatedCode;
         }
 
     } catch (error) {
         logError(error);
-    } finally { 
+    } finally {
         submitBtn.textContent = "Generate";
     }
 });
@@ -282,26 +301,22 @@ function getProtocols(td) {
 }
 
 function populateLanguages(protocols) {
-    try {
-        const languages = getAvailableLanguages(protocols, JSON.stringify(templatePaths));
 
-        //clearing the language and libraries select options
-        for (let i = languageSelect.options.length - 1; i > 0; i--) {
-            languageSelect.remove(i);
-        }
+    const languages = getAvailableLanguages(protocols, JSON.stringify(templatePaths));
 
-        languages.forEach(language => {
-            Object.entries(language).forEach(([key, value]) => {
-                let languageOption = document.createElement("option");
-                languageOption.text = key;
-                languageOption.value = key;
-                languageSelect.add(languageOption);
-            });
-        });
-
-    } catch (error) {
-        logError(error);
+    //clearing the language and libraries select options
+    for (let i = languageSelect.options.length - 1; i > 0; i--) {
+        languageSelect.remove(i);
     }
+
+    languages.forEach(language => {
+        Object.entries(language).forEach(([key, value]) => {
+            let languageOption = document.createElement("option");
+            languageOption.text = key;
+            languageOption.value = key;
+            languageSelect.add(languageOption);
+        });
+    });
 }
 
 function populateLibraries(protocols, selectedLanguage) {
@@ -324,14 +339,46 @@ function populateLibraries(protocols, selectedLanguage) {
             }
         });
 
-        librarySelect.disabled = false;
-
     } catch (error) {
         logError(error);
     }
 }
 
-function resetInputs(allValues = true) {
+function resetInputs(allValues = true, keepValues = false) {
+    if (!keepValues) {
+        affordanceSelect.disabled = true;
+        formIndexSelect.disabled = true;
+        operationSelect.disabled = true;
+        generatorSelect.disabled = true;
+        languageSelect.disabled = true;
+        librarySelect.disabled = true;
+        languageInput.disabled = true;
+        libraryInput.disabled = true;
+        generatorToolSelect.disabled = true;
+
+        affordanceSelect.value = "";
+        formIndexSelect.value = "";
+        operationSelect.value = "";
+        generatorSelect.value = "";
+        languageSelect.value = "";
+        librarySelect.value = "";
+        languageInput.value = "";
+        libraryInput.value = "";
+        generatorToolSelect.value = "";
+        outputCode.value = "";
+        if (allValues) {
+            tdInput.value = "";
+        }
+
+        apiKeyWrapper.classList.add("hidden");
+        languageInput.classList.add("hidden");
+        libraryInput.classList.add("hidden");
+        languageSelectWrapper.classList.remove("hidden");
+        librarySelectWrapper.classList.remove("hidden");
+    }
+}
+
+function disableInputs() {
     affordanceSelect.disabled = true;
     formIndexSelect.disabled = true;
     operationSelect.disabled = true;
@@ -341,26 +388,30 @@ function resetInputs(allValues = true) {
     languageInput.disabled = true;
     libraryInput.disabled = true;
     generatorToolSelect.disabled = true;
+}
 
-    affordanceSelect.value = "";
-    formIndexSelect.value = "";
-    operationSelect.value = "";
-    generatorSelect.value = "";
-    languageSelect.value = "";
-    librarySelect.value = "";
-    languageInput.value = "";
-    libraryInput.value = "";
-    generatorToolSelect.value = "";
-    outputCode.value = "";
-    if(allValues){
-        tdInput.value = "";
+function checkInputs() {
+    if (affordanceSelect.value !== "") {
+        affordanceSelect.disabled = false;
+        formIndexSelect.disabled = false;
+        operationSelect.disabled = false;
     }
 
-    apiKeyWrapper.classList.add("hidden");
-    languageInput.classList.add("hidden");
-    libraryInput.classList.add("hidden");
-    languageSelectWrapper.classList.remove("hidden");
-    librarySelectWrapper.classList.remove("hidden");
+    if (languageSelect.value !== "") {
+        generatorSelect.disabled = false;
+        languageSelect.disabled = false;
+        librarySelect.disabled = false;
+    }
+
+    if (generatorSelect.value === "ai") {
+        generatorSelect.disabled = false;
+        languageInput.disabled = false;
+        libraryInput.disabled = false;
+        generatorToolSelect.disabled = false;
+    } else {
+        generatorSelect.disabled = false;
+        languageSelect.disabled = false;
+    }
 }
 
 async function generateCode(generatorInputs, isAI, aiTool) {
@@ -372,8 +423,8 @@ async function generateCode(generatorInputs, isAI, aiTool) {
             },
             body: JSON.stringify({ generatorInputs, isAI, aiTool })
         });
-        
-        if(res.status !== 200) {
+
+        if (res.status !== 200) {
             throw new Error("An error occurred while trying to connect to the server. Please try again later.");
         }
 
@@ -381,7 +432,7 @@ async function generateCode(generatorInputs, isAI, aiTool) {
 
         if (generatedCode.error) {
             throw new Error(generatedCode.error);
-        }else {
+        } else {
             return generatedCode;
         }
 

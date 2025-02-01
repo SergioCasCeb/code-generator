@@ -153,8 +153,9 @@ input {
     padding: var(--sp-8);
 
     &:disabled {
+        color: var(--clr-neutral-300);
         &::placeholder {
-            color: var(--clr-neutral-400);
+            color: var(--clr-neutral-300);
         }
 
     }
@@ -204,14 +205,6 @@ textarea {
         padding: var(--sp-8);
         transition: all 150ms ease-in-out;
 
-        // &:invalid {
-        //     color: var(--clr-neutral-400);
-        // }
-
-        // &:not(:invalid) {
-        //     color: var(--clr-neutral-900);
-        // }
-
         &:disabled {
             color: var(--clr-neutral-400);
         }
@@ -219,6 +212,10 @@ textarea {
         option:disabled {
             color: var(--clr-neutral-400);
         }
+    }
+
+    select:disabled ~ i {
+        color: var(--clr-neutral-400);
     }
 }
 

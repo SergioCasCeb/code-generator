@@ -8,7 +8,7 @@
     "id": "urn:uuid:0804d572-cce8-422a-bb7c-4412fcd56f06",
     "@type": "Thing",
     "title": "Bacnet thing",
-    "description": "SThis is a test backnet td",
+    "description": "This is a test backnet td",
     "securityDefinitions": {
         "basic_sc": {
             "scheme": "basic",

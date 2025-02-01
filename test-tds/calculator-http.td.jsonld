@@ -10,9 +10,6 @@
     "title": "http-express-calculator-simple",
     "description": "Calculator Thing",
     "securityDefinitions": {
-        "basic_sc": {
-            "scheme": "basic"
-        },
         "nosec_sc": {
             "scheme": "nosec"
         }
@@ -30,12 +27,8 @@
             "forms": [
                 {
                     "href": "properties/result",
-                    "contentType": "application/json"
-                },
-                {
-                    "href": "properties/result",
                     "contentType": "application/json",
-                    "op": "writeproperty"
+                    "op": "readproperty"
                 },
                 {
                     "href": "properties/result/observe",
