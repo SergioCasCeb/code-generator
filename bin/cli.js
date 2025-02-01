@@ -384,6 +384,20 @@ async function getOutputType() {
 }
 
 /**
+ * Return the CLI options for the one-line CLI
+ * @param { Object } generatorInputs 
+ * @param { Boolean } isAI 
+ * @param { String } aiTool 
+ * @param { String } outputType 
+ * @returns { String } cliOptionsString
+ */
+function returnCLIOptions(generatorInputs, isAI, aiTool, outputType) {
+    const cliOptionsString = `generate-code ${chalk.gray('--td')} [path to TD] ${chalk.gray('--affordance')} ${generatorInputs.affordance} ${generatorInputs.formIndex !== null ? chalk.gray('--form-index ') + generatorInputs.formIndex : ''} ${chalk.gray('--operation')} ${generatorInputs.operation} ${chalk.gray('--language')} ${generatorInputs.programmingLanguage} ${chalk.gray('--library')} ${generatorInputs.library} ${isAI ? chalk.gray('--ai --tool ') + aiTool : ''} ${chalk.gray('--output')} ${outputType}`;
+
+    return cliOptionsString;
+}
+
+/**
  * Main function to run the interactive CLI
  */
 async function runInteractiveCLI() {
@@ -465,6 +479,7 @@ async function runInteractiveCLI() {
         //Generate the code and stop the spinner if successful
         const outputCode = await generateCode(generatorInputs, isAI, aiTool ? aiTool : null);
         spinner.success(`Success: ${chalk.green('Code generated successfully!')}`)
+        console.log(`${chalk.bold.yellow('CLI Options:')} ${returnCLIOptions(generatorInputs, isAI, aiTool, outputType)}`);
         if (outputType === 'file') {
             generateFile(affordance, operation, programmingLanguage, outputCode);
         } else {
