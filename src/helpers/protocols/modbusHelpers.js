@@ -96,7 +96,7 @@ export function getQuantity(URL) {
  * @returns { String } pollingTime - the polling time specified in the form
  */
 export function getPollingTime(form) {
-    const pollingTime = form["modbus:pollingTime"];
+    const pollingTime = form["modv:pollingTime"];
 
     return pollingTime ? pollingTime : '500';
 }
@@ -122,8 +122,8 @@ export function getModbusFunction(form, operation) {
         writeMultipleHoldingRegisters: 'writeRegisters'
     }
 
-    if(form["modbus:function"]) {
-        modbusFunction = modbusSerialFunctions[form["modbus:function"]];
+    if(form["modv:function"]) {
+        modbusFunction = modbusSerialFunctions[form["modv:function"]];
     }
     else {
         if(operation === 'readproperty') {
@@ -143,6 +143,6 @@ export function getModbusFunction(form, operation) {
     if(modbusFunction) {
         return modbusFunction;
     }else {
-        throw new Error("Not found/Wrong Modbus function specified in the TD");
+        throw new Error("Not found or wrong Modbus function specified in the TD");
     }
 }
