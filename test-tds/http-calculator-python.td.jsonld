@@ -20,7 +20,7 @@
     "base": "http://localhost:5000/http-flask-calculator/",
     "properties": {
         "result": {
-            "type": "number",
+            "type": "integer",
             "readOnly": true,
             "writeOnly": false,
             "observable": true,
@@ -29,15 +29,6 @@
                     "href": "properties/result",
                     "contentType": "application/json",
                     "op": "readproperty"
-                },
-                {
-                    "href": "properties/result/observe",
-                    "contentType": "application/json",
-                    "op": [
-                        "observeproperty",
-                        "unobserveproperty"
-                    ],
-                    "subprotocol": "sse"
                 }
             ]
         },
@@ -54,15 +45,6 @@
                     "op": [
                         "readproperty"
                     ]
-                },
-                {
-                    "href": "properties/lastChange/observe",
-                    "contentType": "application/json",
-                    "op": [
-                        "observeproperty",
-                        "unobserveproperty"
-                    ],
-                    "subprotocol": "sse"
                 }
             ]
         }
@@ -70,10 +52,10 @@
     "actions": {
         "add": {
             "input": {
-                "type": "number"
+                "type": "integer"
             },
             "output": {
-                "type": "number"
+                "type": "integer"
             },
             "idempotent": false,
             "safe": false,
@@ -89,10 +71,10 @@
         },
         "subtract": {
             "input": {
-                "type": "number"
+                "type": "integer"
             },
             "output": {
-                "type": "number"
+                "type": "integer"
             },
             "idempotent": false,
             "safe": false,

@@ -1,7 +1,7 @@
 {{#if (equalTo (getSubprotocol form operation) "sse")}}
-const EventSource = require('eventsource');
+import { EventSource } from 'eventsource';
 {{else}}
-const fetch = require("node-fetch");
+import fetch from 'node-fetch';
 {{/if}}
 
 const URL = "{{absoluteURL}}";
