@@ -28,7 +28,9 @@
                 {
                     "href": "properties/result",
                     "contentType": "application/json",
-                    "op": "readproperty"
+                    "op": [
+                        "readproperty"
+                    ]
                 },
                 {
                     "href": "properties/result/observe",
@@ -121,15 +123,6 @@
                         "unsubscribeevent"
                     ],
                     "subprotocol": "sse"
-                },
-                {
-                    "href": "events/update",
-                    "contentType": "application/json",
-                    "op": [
-                        "subscribeevent",
-                        "unsubscribeevent"
-                    ],
-                    "subprotocol": "longpoll"
                 }
             ]
         }

@@ -102,7 +102,8 @@ export function getPollingTime(form) {
 }
 
 /**
- * Get the modbus function specified in the form, if not specified set a default one depending on the operation
+ * Get the modbus function specified in the form, if not specified 
+ * set a default one depending on the operation
  * @param { Object } form 
  * @param { String } operation 
  * @returns { String } modbusFunction - the modbus function to be used
