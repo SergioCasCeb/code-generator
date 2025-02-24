@@ -16,7 +16,7 @@ export function getSubprotocol(form, operation) {
         if(operation == "observeproperty" || operation == "unobserveproperty" || operation == "subscribeevent" || operation == "unsubscribeevent") {
             return 'sse';
         }else{
-            throw new Error("Operation not supported");
+            return null;
         }
     }
 }
@@ -44,7 +44,7 @@ export function getMethod(form, operation) {
             return "PUT";
         }
         else {
-            throw new Error("Operation not supported");
+            return null;
         }
     }
 }

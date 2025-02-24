@@ -137,7 +137,7 @@ export function getModbusFunction(form, operation) {
             modbusFunction = 'readCoils';
         }
         else {
-            throw new Error("Operation not supported");
+            return null;
         }
     }
     

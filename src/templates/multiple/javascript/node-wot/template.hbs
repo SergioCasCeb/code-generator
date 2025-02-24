@@ -40,6 +40,12 @@ servient.start().then(async (WoT) => {
     thing.subscribeEvent("{{affordance}}", async (data) => {
         console.log("Event data:", await data.value());
     });
+
+    // Unsubscribe after a certain period of time
+    setTimeout(() => {
+        thing.unsubscribeEvent("{{affordance}}");
+        console.log('Unsubscribed from {{affordance}} event');
+    }, 10000);
     {{/if}}
     {{/if}}
 
