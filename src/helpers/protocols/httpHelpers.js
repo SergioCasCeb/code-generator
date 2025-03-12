@@ -9,7 +9,7 @@
  * @param { String } operation 
  * @returns { String } - the subprotocol to be used
  */
-export function getSubprotocol(form, operation) {
+function getSubprotocol(form, operation) {
     if(form["subprotocol"]) {
         return form["subprotocol"];
     }else {
@@ -28,7 +28,7 @@ export function getSubprotocol(form, operation) {
  * @param { String } operation 
  * @returns { String } - the method to be used
  */
-export function getMethod(form, operation) {
+function getMethod(form, operation) {
 
     if(form["htv:methodName"]){
         return form["htv:methodName"];
@@ -54,10 +54,17 @@ export function getMethod(form, operation) {
  * @param { Object } form 
  * @returns { String } - the content type to be used
  */
-export function getContentType(form) {
+function getContentType(form) {
     if(form["contentType"]){
         return form["contentType"];
     }else{
         return "application/json";
     }
+}
+
+// Export all http helper functions
+module.exports = {
+    getSubprotocol,
+    getMethod,
+    getContentType
 }

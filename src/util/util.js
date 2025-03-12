@@ -1,18 +1,15 @@
-import { detectProtocolSchemes } from '@thingweb/td-utils'
-import fs from 'fs';
-import path from "path";
-import { fileURLToPath } from 'url';
-import chalk from "chalk";
+const { detectProtocolSchemes } = require('@thingweb/td-utils');
+const chalk = require('chalk');
+const fs = require('fs');
+const path = require('path');
 
-let __dirname;
-let __filename;
-
-//Check if the code is running in the browser or in Node.js
-if (typeof window === 'undefined') {
-    //Utilize the url library to get the current file and directory paths
-    __filename = fileURLToPath(import.meta.url);
-    __dirname = path.dirname(__filename);
-}
+//TODO: Check if this code snippet is still necessary
+// //Check if the code is running in the browser or in Node.js
+// if (typeof window === 'undefined') {
+//     //Utilize the url library to get the current file and directory paths
+//     __filename = fileURLToPath(import.meta.url);
+//     __dirname = path.dirname(__filename);
+// }
 
 /**
  * Get the affordance type based on the affordance name (property, action, event)
@@ -20,7 +17,7 @@ if (typeof window === 'undefined') {
  * @param { String } affordance 
  * @returns { String } affordanceType - the affordance type
  */
-export function getAffordanceType(td, affordance) {
+function getAffordanceType(td, affordance) {
     let affordanceType;
     for (const key in td) {
         if (td.hasOwnProperty(key)) {
@@ -47,7 +44,7 @@ export function getAffordanceType(td, affordance) {
  * @param { String } td 
  * @returns { Object } parsedTD
  */
-export function parseTD(td) {
+function parseTD(td) {
     try {
         const parsedTD = JSON.parse(td);
         return parsedTD;
@@ -61,7 +58,7 @@ export function parseTD(td) {
  * @param { Object } td 
  * @returns { Array } affordanceOptions
  */
-export function getTDAffordances(td) {
+function getTDAffordances(td) {
     const properties = td.properties ? Object.keys(td.properties) : [];
     const actions = td.actions ? Object.keys(td.actions) : [];
     const events = td.events ? Object.keys(td.events) : [];
@@ -83,7 +80,7 @@ export function getTDAffordances(td) {
  * @param { String } affordance 
  * @returns { Array } availableIndexes
  */
-export function getFormIndexes(td, affordanceType, affordance) {
+function getFormIndexes(td, affordanceType, affordance) {
     const availableForms = td[affordanceType][affordance].forms;
 
     if (availableForms && availableForms.length > 0) {
@@ -102,7 +99,7 @@ export function getFormIndexes(td, affordanceType, affordance) {
  * @param { Integer } formIndex 
  * @returns { Array } availableOperations
  */
-export function getOperations(td, affordanceType, affordance, formIndex) {
+function getOperations(td, affordanceType, affordance, formIndex) {
 
     const operationList = {
         properties: ['readproperty', 'writeproperty', 'observeproperty'],
@@ -169,7 +166,7 @@ function getAvailableProtocols(file) {
  * @param { string } file - the file with the available protocols
  * @returns { Array } protocols
  */
-export function getTDProtocols(td, file) {
+function getTDProtocols(td, file) {
 
     const availableProtocols = getAvailableProtocols(file);
     const tdProtocols = Object.keys(detectProtocolSchemes(td));
@@ -199,7 +196,7 @@ export function getTDProtocols(td, file) {
  * @param { String } file - the file with the available languages
  * @returns { Array } availableLanguages
  */
-export function getAvailableLanguages(protocols, file) {
+function getAvailableLanguages(protocols, file) {
     try {
         let templatesFile;
         if (file) {
@@ -238,7 +235,7 @@ export function getAvailableLanguages(protocols, file) {
  * @param { Array } languageList 
  * @returns { Array } availableLibraries
  */
-export function getAvailableLibraries(selectedLanguage, languageList) {
+function getAvailableLibraries(selectedLanguage, languageList) {
     let availableLibraries = [];
 
     languageList.forEach(language => {
@@ -260,8 +257,7 @@ export function getAvailableLibraries(selectedLanguage, languageList) {
  * @param { String } programmingLanguage 
  * @param { String } outputCode 
  */
-export async function generateFile(affordance, operation, programmingLanguage, outputCode) {
-
+async function generateFile(affordance, operation, programmingLanguage, outputCode) {
     const folderName = 'generator-output';
     let fileName;
 
@@ -287,4 +283,18 @@ export async function generateFile(affordance, operation, programmingLanguage, o
             console.log(chalk.blue(`The file '${fileName}' was added to the '${folderName}' folder.`));
         }
     });
+}
+
+// Export the functions
+module.exports = {
+    getAffordanceType,
+    parseTD,
+    getTDAffordances,
+    getFormIndexes,
+    getOperations,
+    //getAvailableProtocols,
+    getTDProtocols,
+    getAvailableLanguages,
+    getAvailableLibraries,
+    generateFile
 }

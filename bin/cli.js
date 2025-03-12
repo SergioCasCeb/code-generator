@@ -1,14 +1,13 @@
 #!/usr/bin/env node
-
-import { Command } from "commander";
-import chalk from "chalk";
-import { input, select, editor } from '@inquirer/prompts';
-import fileSelector from 'inquirer-file-selector';
-import { createSpinner } from 'nanospinner';
-import { generateCode } from '../src/lib/code-generator.js';
-import { getTDProtocols, getAvailableLanguages, getAvailableLibraries, getAffordanceType, generateFile, parseTD, getTDAffordances, getFormIndexes, getOperations } from '../src/util/util.js';
-import fs from 'fs';
-import path from "path";
+const { Command } = require("commander");
+const chalk = require("chalk");
+const { input, select, editor } = require('@inquirer/prompts');
+// const fileSelector = require('inquirer-file-selector');
+const { createSpinner } = require('nanospinner');
+const { generateCode } = require('../src/lib/code-generator.js');
+const { getTDProtocols, getAvailableLanguages, getAvailableLibraries, getAffordanceType, generateFile, parseTD, getTDAffordances, getFormIndexes, getOperations } = require('../src/util/util.js');
+const fs = require('fs');
+const path = require("path");
 
 /**
  * Provide a user friendly message when the user exits the program and throw an error if the reason for the exit is not an ExitPromptError
@@ -48,6 +47,16 @@ program
         if (options.interactive) {
             runInteractiveCLI();
         } else {
+            
+            const requiredOptions = ['td', 'affordance', 'operation', 'language', 'library'];
+            const missingOptions = requiredOptions.filter((option) => !options[option]);
+
+            if (missingOptions.length > 0) {
+                console.error("Error: " + chalk.red(`Missing required options: ${missingOptions.join(', ')}`));
+                program.help();
+                program.exit(1);
+            }
+            
             runOneLineCLI(options);
         }
     });
@@ -126,6 +135,9 @@ async function tdInputType() {
  * @returns { Object } parsedTD
  */
 async function getTDFile() {
+
+    const fileSelectorModule = await import('inquirer-file-selector');
+    const fileSelector = fileSelectorModule.default;
     const filePath = await fileSelector({
         message: 'Select the path to your TD file:',
         basePath: process.cwd(),

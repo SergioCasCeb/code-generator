@@ -1,19 +1,22 @@
-import { AzureOpenAI } from "openai";
-import { DefaultAzureCredential } from "@azure/identity";
-import dotenv from "dotenv";
-import path from 'path';
-import { fileURLToPath } from 'url';
+const { AzureOpenAI } = require("openai");
+const { DefaultAzureCredential } = require("@azure/identity");
+const dotenv = require("dotenv");
+const path = require('path');
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
 dotenv.config({ path: path.resolve(__dirname, '../../.env') });
 
-export async function generateChatGPTCode(generatorInputs) {
+/**
+ * Generate code using the ChatGPT API
+ * @param { Object } generatorInputs 
+ * @returns { Promise<String> } The generated code
+ */
+async function generateChatGPTCode(generatorInputs, endpoint, apiVersion, deployment, apiKey) {
 
-    const endpoint = process.env["AZURE_OPENAI_ENDPOINT"];
-    const apiVersion = process.env["OPENAI_API_VERSION"]
-    const deployment = process.env["AZURE_OPENAI_DEPLOYMENT_NAME"];
-    const apiKey = process.env["AZURE_OPENAI_API_KEY"];
+    //todo: Implement this
+    // const endpoint = process.env["AZURE_OPENAI_ENDPOINT"];
+    // const apiVersion = process.env["OPENAI_API_VERSION"]
+    // const deployment = process.env["AZURE_OPENAI_DEPLOYMENT_NAME"];
+    // const apiKey = process.env["AZURE_OPENAI_API_KEY"];
 
 
     const credential = new DefaultAzureCredential();
@@ -39,3 +42,6 @@ export async function generateChatGPTCode(generatorInputs) {
 
     return result.choices[0].message.content;
 }
+
+//Export the function to be used in the main script
+module.exports = generateChatGPTCode;
