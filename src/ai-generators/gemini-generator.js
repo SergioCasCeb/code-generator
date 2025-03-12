@@ -1,13 +1,15 @@
-import { GoogleGenerativeAI } from "@google/generative-ai";
-import dotenv from "dotenv";
-import path from 'path';
-import { fileURLToPath } from 'url';
+const { GoogleGenerativeAI } = require("@google/generative-ai");
+const dotenv = require("dotenv");
+const path = require('path');
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
 dotenv.config({ path: path.resolve(__dirname, '../../.env') });
 
-export async function generateGeminiCode(generatorInputs) {
+/**
+ * Generate code using the Gemini API
+ * @param { Object } generatorInputs 
+ * @returns { Promise<String> } The generated code
+ */
+async function generateGeminiCode(generatorInputs) {
 
     const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
 
@@ -25,3 +27,6 @@ export async function generateGeminiCode(generatorInputs) {
 
     return result.response.text()
 }
+
+//Export the function to be used in the main script
+module.exports = generateGeminiCode;

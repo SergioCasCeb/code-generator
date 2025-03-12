@@ -1,7 +1,6 @@
 {
   "name": "code-generator-tests",
   "version": "1.0.0",
-  "type": "module",
   "main": "index.js",
   "bin": {
     "generate-code": "./bin/cli.js"
@@ -19,7 +18,7 @@
     "@thing-description-playground/core": "^1.4.0",
     "@thing-description-playground/defaults": "^1.4.0",
     "@thingweb/td-utils": "^1.0.0",
-    "chalk": "^5.4.1",
+    "chalk": "^4.1.2",
     "commander": "^13.1.0",
     "dotenv": "^16.4.7",
     "groq-sdk": "^0.12.0",

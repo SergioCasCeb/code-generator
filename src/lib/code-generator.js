@@ -1,17 +1,16 @@
-import Handlebars from 'handlebars';
-import fs from 'fs';
-import path from 'path';
-import { fileURLToPath } from 'url';
-import URLToolkit from 'url-toolkit';
-import * as helpers from '../helpers/utilHelpers.js';
-import * as httpHelpers from '../helpers/protocols/httpHelpers.js';
-import * as modbusHelpers from '../helpers/protocols/modbusHelpers.js';
-import { addDefaults } from '@thing-description-playground/defaults';
-import { tdValidator } from '@thing-description-playground/core';
-import { getAffordanceType } from '../util/util.js';
-import { generateChatGPTCode } from '../ai-generators/chatgpt-generator.js';
-import { generateGeminiCode } from '../ai-generators/gemini-generator.js';
-import { generateLlamaCode } from '../ai-generators/llama-generator.js';
+const Handlebars = require('handlebars');
+const helpers = require('../helpers/utilHelpers.js');
+const httpHelpers = require('../helpers/protocols/httpHelpers.js');
+const modbusHelpers = require('../helpers/protocols/modbusHelpers.js');
+const generateChatGPTCode = require('../ai-generators/chatgpt-generator.js');
+const generateGeminiCode = require('../ai-generators/gemini-generator.js');
+const generateLlamaCode = require('../ai-generators/llama-generator.js');
+const fs = require('fs');
+const path = require('path');
+const URLToolkit = require('url-toolkit');
+const { addDefaults } = require('@thing-description-playground/defaults');
+const { tdValidator } = require('@thing-description-playground/core');
+const { getAffordanceType } = require('../util/util.js');
 
 
 //Register all helpers
@@ -22,10 +21,6 @@ handlebarsHelpers.forEach(module => {
         Handlebars.registerHelper(key, module[key]);
     }
 })
-
-//Utilize the url library to get the current file and directory paths
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
 
 /**************************************/
 /*********** Main generator ***********/
@@ -38,10 +33,13 @@ const __dirname = path.dirname(__filename);
  * @param { string } aiTool - the AI tool to use for code generation
  * @returns { String } - the generated code
  */
-export async function generateCode(userInputs, generateAI = false, aiTool) {
+async function generateCode(userInputs, generateAI = false, aiTool) {
     //Basic input validation check
     if (!userInputs || (!userInputs.programmingLanguage || !userInputs.library || !userInputs.td || !userInputs.affordance || !userInputs.operation)) {
-        if (!userInputs.programmingLanguage) {
+        if (!userInputs) {
+            throw new Error("The inputs object is missing");
+        }
+        else if (!userInputs.programmingLanguage) {
             throw new Error("A programming language must be specified");
         }
         else if (!userInputs.library) {
@@ -82,7 +80,6 @@ export async function generateCode(userInputs, generateAI = false, aiTool) {
         } else {
             const template = getTemplate(userInputs.programmingLanguage, userInputs.library);
             const templateInputs = await getTemplateInputs(userInputs.td, userInputs.affordance, userInputs.operation, userInputs.formIndex);
-
             // Compile the template with the filtered inputs
             const compiledTemplate = Handlebars.compile(template);
             return compiledTemplate(templateInputs);
@@ -295,4 +292,9 @@ function getAbsoluteURL(baseURL, partialURL) {
     const absoluteURL = URLToolkit.buildAbsoluteURL(base, partial);
 
     return absoluteURL;
+}
+
+// Export functions
+module.exports = {
+    generateCode
 }

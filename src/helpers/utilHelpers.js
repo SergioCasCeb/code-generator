@@ -1,7 +1,7 @@
 /**
  * All general and reusable utility helper functions are defined in this file.
  */
-import { JSONSchemaFaker } from "json-schema-faker";
+const JSONSchemaFaker = require("json-schema-faker");
 
 /**
  * Check if two arguments are equal
@@ -9,7 +9,7 @@ import { JSONSchemaFaker } from "json-schema-faker";
  * @param { any } arg2 
  * @returns { boolean } - true if equal, false otherwise
  */
-export function equalTo(arg1, arg2) {
+function equalTo(arg1, arg2) {
     return arg1 === arg2;
 }
 
@@ -20,7 +20,7 @@ export function equalTo(arg1, arg2) {
  * @param { boolean } arg3 
  * @returns { boolean } - true if any of the arguments are true, false otherwise
  */
-export function or(arg1, arg2, arg3) {
+function or(arg1, arg2, arg3) {
     arg1 = arg1 != (true || false) ?  false : arg1;
     arg2 = arg2 != (true || false) ?  false : arg2;
     arg3 = arg3 != (true || false) ?  false : arg3;
@@ -34,7 +34,7 @@ export function or(arg1, arg2, arg3) {
  * @param { String } arg2 
  * @returns { String } - joined string
  */
-export function joinStr(arg1, arg2) {
+function joinStr(arg1, arg2) {
     return arg1 + " " + arg2;
 }
 
@@ -43,7 +43,7 @@ export function joinStr(arg1, arg2) {
  * @param { String } str 
  * @returns { String } - string in camelCase
  */
-export function toCamelCase(str) {
+function toCamelCase(str) {
     return str
         .toLowerCase()
         .split(" ")
@@ -58,12 +58,12 @@ export function toCamelCase(str) {
  * @param { String } str 
  * @returns { String } - string in snake_case
  */
-export function toSnakeCase(str) {
+function toSnakeCase(str) {
     str = str.toLowerCase();
     return str.split(" ").join("_");  
 }
 
-export function toLowerCase(str) {
+function toLowerCase(str) {
     return str.toLowerCase();
 }
 
@@ -72,7 +72,7 @@ export function toLowerCase(str) {
  * @param { Object } affordanceObject 
  * @returns testInput - the generated test input
  */
-export function generateTestInput(affordanceObject) {
+function generateTestInput(affordanceObject) {
     let testInput;
 
     if(affordanceObject["input"]) {
@@ -87,3 +87,14 @@ export function generateTestInput(affordanceObject) {
     
     return testInput;
 }
+
+// Export all utility functions
+module.exports = {
+    equalTo,
+    or,
+    joinStr,
+    toCamelCase,
+    toSnakeCase,
+    toLowerCase,
+    generateTestInput
+};

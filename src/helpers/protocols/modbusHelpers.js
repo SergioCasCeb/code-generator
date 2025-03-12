@@ -1,14 +1,14 @@
 /**
  * All Modbus protocol specific helper functions are defined in this file.
  */
-import URLToolkit from 'url-toolkit';
+const URLToolkit = require('url-toolkit');
 
 /**
  * get the IP from the URL
  * @param { String } URL 
  * @returns { String } - IP address
  */
-export function getIP(URL) {
+function getIP(URL) {
     const urlComponents = URLToolkit.parseURL(URL);
     const ipMatch = urlComponents["netLoc"].match(/\/\/([\d.]+):/);
 
@@ -24,7 +24,7 @@ export function getIP(URL) {
  * @param { String } URL 
  * @returns { String } - Port number
  */
-export function getPort(URL) {
+function getPort(URL) {
     const urlComponents = URLToolkit.parseURL(URL);
     const portMatch = urlComponents["netLoc"].match(/:(\d+)$/);
     
@@ -40,7 +40,7 @@ export function getPort(URL) {
  * @param { String } URL 
  * @returns { String } unitID - the unitID specified in the URL
  */
-export function getUnitID(URL) {
+function getUnitID(URL) {
     const urlComponents = URLToolkit.parseURL(URL);
     const unitID = urlComponents["path"].replace("/", "");
 
@@ -57,7 +57,7 @@ export function getUnitID(URL) {
  * @param { String } URL 
  * @returns { String } address - the address specified in the parameters
  */
-export function getAddress(URL) {
+function getAddress(URL) {
     const urlComponents = URLToolkit.parseURL(URL);
     const params = new URLSearchParams(urlComponents["query"]);
 
@@ -76,7 +76,7 @@ export function getAddress(URL) {
  * @param { String } URL 
  * @returns { String } quantity - the quantity specified in the parameters
  */
-export function getQuantity(URL) {
+function getQuantity(URL) {
     const urlComponents = URLToolkit.parseURL(URL);
     const params = new URLSearchParams(urlComponents["query"]);
 
@@ -95,7 +95,7 @@ export function getQuantity(URL) {
  * @param { Object } form 
  * @returns { String } pollingTime - the polling time specified in the form
  */
-export function getPollingTime(form) {
+function getPollingTime(form) {
     const pollingTime = form["modv:pollingTime"];
 
     return pollingTime ? pollingTime : '500';
@@ -108,7 +108,7 @@ export function getPollingTime(form) {
  * @param { String } operation 
  * @returns { String } modbusFunction - the modbus function to be used
  */
-export function getModbusFunction(form, operation) {
+function getModbusFunction(form, operation) {
 
     let modbusFunction;
 
@@ -146,4 +146,15 @@ export function getModbusFunction(form, operation) {
     }else {
         throw new Error("Not found or wrong Modbus function specified in the TD");
     }
+}
+
+//Export all the modbus helper functions
+module.exports = {
+    getIP,
+    getPort,
+    getUnitID,
+    getAddress,
+    getQuantity,
+    getPollingTime,
+    getModbusFunction
 }
