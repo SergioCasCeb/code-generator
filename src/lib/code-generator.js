@@ -11,6 +11,8 @@ const URLToolkit = require('url-toolkit');
 const { addDefaults } = require('@thing-description-playground/defaults');
 const { tdValidator } = require('@thing-description-playground/core');
 const { getAffordanceType } = require('../util/util.js');
+const { console } = require('inspector');
+const { get } = require('http');
 
 
 //Register all helpers
@@ -78,11 +80,12 @@ async function generateCode(userInputs, generateAI = false, aiTool) {
             }
 
         } else {
-            const template = getTemplate(userInputs.programmingLanguage, userInputs.library);
+            const template = await getTemplate(userInputs.programmingLanguage, userInputs.library);
+            return template;
             const templateInputs = await getTemplateInputs(userInputs.td, userInputs.affordance, userInputs.operation, userInputs.formIndex);
             // Compile the template with the filtered inputs
-            const compiledTemplate = Handlebars.compile(template);
-            return compiledTemplate(templateInputs);
+            // const compiledTemplate = Handlebars.compile(template);
+            // return compiledTemplate(templateInputs);
         }
 
     } catch (error) {
@@ -101,30 +104,28 @@ async function generateCode(userInputs, generateAI = false, aiTool) {
  * @param { String } library 
  * @returns { String } file - the content of the template file
  */
-function getTemplate(language, library) {
-
-    const filePath = path.resolve(__dirname, '../templates/templates-paths.json');
-
+async function getTemplate(language, library) {
     try {
 
-        const templatesPaths = fs.readFileSync(filePath, 'utf8');
-        const templates = JSON.parse(templatesPaths);
+        const fetchPaths = await fetch("https://raw.githubusercontent.com/SergioCasCeb/code-generator/refs/heads/main/src/templates/templates-paths.json");
+        const templatesPaths = await fetchPaths.json();
 
         language = language.toLowerCase();
         library = library.toLowerCase();
 
-        const templatePath = Object.values(templates).find(value =>
+        const templatePath = Object.values(templatesPaths).find(value =>
             value[language] && value[language][library]
         )?.[language]?.[library];
-
 
         if (!templatePath) {
             throw new Error("No available templates for the specified language and/or library");
         }
 
-        const templatePathResolved = path.resolve(__dirname, '../../', templatePath);
-        const template = fs.readFileSync(templatePathResolved, 'utf8');
+        const fetchTemplate = await fetch(templatePath);
+        const template = await fetchTemplate.text();
+
         return template;
+
 
     } catch (error) {
         if (error instanceof SyntaxError) {
@@ -135,6 +136,39 @@ function getTemplate(language, library) {
         }
         throw new Error(`Failed to load template: ${error.message}`);
     }
+
+    // const filePath = path.resolve(__dirname, '../templates/templates-paths.json');
+
+    // try {
+
+    //     const templatesPaths = fs.readFileSync(filePath, 'utf8');
+    //     const templates = JSON.parse(templatesPaths);
+
+    // language = language.toLowerCase();
+    // library = library.toLowerCase();
+
+    // const templatePath = Object.values(templates).find(value =>
+    //     value[language] && value[language][library]
+    // )?.[language]?.[library];
+
+
+    //     if (!templatePath) {
+    //         throw new Error("No available templates for the specified language and/or library");
+    //     }
+
+    //     const templatePathResolved = path.resolve(__dirname, '../../', templatePath);
+    //     const template = fs.readFileSync(templatePathResolved, 'utf8');
+    //     return template;
+
+    // } catch (error) {
+    // if (error instanceof SyntaxError) {
+    //     throw new Error('Invalid templates configuration file');
+    // }
+    // if (error.code === 'ENOENT') {
+    //     throw new Error(`File not found: ${error.path}`);
+    // }
+    // throw new Error(`Failed to load template: ${error.message}`);
+    // }
 }
 
 /**

@@ -15,3 +15,6 @@ test-handlerbars.js
 
 #ignore the css map file
 *.css.map
+
+#ignore the test-scripts file
+test-scripts.js
