@@ -7,7 +7,8 @@ servient.addClientFactory(new HttpClientFactory(null));
 servient.start().then(async (WoT) => {
 
     //Utilize the link to your Thing Description or enter your Thing Description directly
-    const td = await WoT.requestThingDescription(/*Thing Description here*/);
+    //const td = await WoT.requestThingDescription(/*Path to Thing Description*/);
+    const td = {...};
     let thing = await WoT.consume(td);
     
     {{#if (equalTo affordanceType "properties")}}

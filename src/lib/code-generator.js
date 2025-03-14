@@ -5,14 +5,10 @@ const modbusHelpers = require('../helpers/protocols/modbusHelpers.js');
 const generateChatGPTCode = require('../ai-generators/chatgpt-generator.js');
 const generateGeminiCode = require('../ai-generators/gemini-generator.js');
 const generateLlamaCode = require('../ai-generators/llama-generator.js');
-const fs = require('fs');
-const path = require('path');
 const URLToolkit = require('url-toolkit');
 const { addDefaults } = require('@thing-description-playground/defaults');
 const { tdValidator } = require('@thing-description-playground/core');
 const { getAffordanceType } = require('../util/util.js');
-const { console } = require('inspector');
-const { get } = require('http');
 
 
 //Register all helpers
@@ -81,11 +77,10 @@ async function generateCode(userInputs, generateAI = false, aiTool) {
 
         } else {
             const template = await getTemplate(userInputs.programmingLanguage, userInputs.library);
-            return template;
             const templateInputs = await getTemplateInputs(userInputs.td, userInputs.affordance, userInputs.operation, userInputs.formIndex);
             // Compile the template with the filtered inputs
-            // const compiledTemplate = Handlebars.compile(template);
-            // return compiledTemplate(templateInputs);
+            const compiledTemplate = Handlebars.compile(template);
+            return compiledTemplate(templateInputs);
         }
 
     } catch (error) {
