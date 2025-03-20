@@ -1,7 +1,7 @@
 {
     "http": {
         "javascript": {
-            "fetch": "http/javascript/fetch/template.hbs.js",
+            "fetch": "http/javascript/fetch/template.hbs",
             "node-wot": "multiple/javascript/node-wot/template.hbs"
         },
         "python": {

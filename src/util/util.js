@@ -3,14 +3,6 @@ const chalk = require('chalk');
 const fs = require('fs');
 const path = require('path');
 
-//TODO: Check if this code snippet is still necessary
-// //Check if the code is running in the browser or in Node.js
-// if (typeof window === 'undefined') {
-//     //Utilize the url library to get the current file and directory paths
-//     __filename = fileURLToPath(import.meta.url);
-//     __dirname = path.dirname(__filename);
-// }
-
 /**
  * Get the affordance type based on the affordance name (property, action, event)
  * @param { Object } td 
@@ -135,28 +127,17 @@ function getOperations(td, affordanceType, affordance, formIndex) {
 }
 
 /**
- * Gets the available protocols based on the templates-paths.json file
- * @param { string } file - the file with the available protocols
- * @returns { Array } availableProtocols
+ * Get the content of a template file and return it as a string
+ * @param { String } filePath 
+ * @returns { String } fileContent
  */
-function getAvailableProtocols(file) {
+function getTemplateContent(filePath) {
+    const fullPath = path.join('src', 'templates', filePath);
     try {
-        let pathsFile;
-
-        if (file) {
-            pathsFile = file;
-
-        } else {
-            const filePath = path.resolve(__dirname, '../templates/templates-paths.json');
-            pathsFile = fs.readFileSync(filePath, 'utf8');
-        }
-
-        const availableProtocols = Object.keys(JSON.parse(pathsFile));
-
-        return availableProtocols;
-
+        const fileContent = fs.readFileSync(fullPath, 'utf8');
+        return fileContent;
     } catch (error) {
-        throw new Error("Could not find the available protocols");
+        throw new Error("Could not find the template file");
     }
 }
 
@@ -166,9 +147,11 @@ function getAvailableProtocols(file) {
  * @param { string } file - the file with the available protocols
  * @returns { Array } protocols
  */
-function getTDProtocols(td, file) {
+function getTDProtocols(td) {
 
-    const availableProtocols = getAvailableProtocols(file);
+    const pathsFile = require('../templates/templates-paths.json');
+    const availableProtocols = Object.keys(pathsFile);
+
     const tdProtocols = Object.keys(detectProtocolSchemes(td));
     let protocols = [];
 
@@ -193,29 +176,19 @@ function getTDProtocols(td, file) {
 /**
  * Get the available languages based on the protocols
  * @param { Array } protocols 
- * @param { String } file - the file with the available languages
  * @returns { Array } availableLanguages
  */
-function getAvailableLanguages(protocols, file) {
+function getAvailableLanguages(protocols) {
     try {
-        let templatesFile;
-        if (file) {
-            templatesFile = file;
-        } else {
-            const filePath = path.resolve(__dirname, '../templates/templates-paths.json');
-            templatesFile = fs.readFileSync(filePath, 'utf8');
-        }
-
-        const fileContent = JSON.parse(templatesFile);
+        const pathsFile = require('../templates/templates-paths.json');
         let availableLanguages = [];
 
-        Object.entries(fileContent).forEach(([key, value]) => {
+        Object.entries(pathsFile).forEach(([key, value]) => {
             protocols.forEach(protocol => {
                 if (key === protocol) {
                     Object.entries(value).forEach(([language, libraries]) => {
                         availableLanguages.push({ [language]: Object.keys(libraries) });
                     });
-
                 }
             });
         });
@@ -292,7 +265,7 @@ module.exports = {
     getTDAffordances,
     getFormIndexes,
     getOperations,
-    //getAvailableProtocols,
+    getTemplateContent,
     getTDProtocols,
     getAvailableLanguages,
     getAvailableLibraries,

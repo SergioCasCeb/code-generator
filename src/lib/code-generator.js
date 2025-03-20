@@ -8,7 +8,7 @@ const generateLlamaCode = require('../ai-generators/llama-generator.js');
 const URLToolkit = require('url-toolkit');
 const { addDefaults } = require('@thing-description-playground/defaults');
 const { tdValidator } = require('@thing-description-playground/core');
-const { getAffordanceType } = require('../util/util.js');
+const { getAffordanceType, getTemplateContent } = require('../util/util.js');
 
 
 //Register all helpers
@@ -78,7 +78,6 @@ async function generateCode(userInputs, generateAI = false, aiTool) {
         } else {
             const template = getTemplate(userInputs.programmingLanguage, userInputs.library);
             const templateInputs = await getTemplateInputs(userInputs.td, userInputs.affordance, userInputs.operation, userInputs.formIndex);
-            return template;
             // Compile the template with the filtered inputs
             const compiledTemplate = Handlebars.compile(template);
             return compiledTemplate(templateInputs);
@@ -115,57 +114,18 @@ function getTemplate(language, library) {
             throw new Error("No available templates for the specified language and/or library");
         }
 
-        const template = require(`../templates/${templatePath}`);
-        console.log(fetchPaths);
-        console.log(templatePath);
-        console.log(template);
-        // console.log(`../templates/${templatePath}`);
-
-        // return template;
+        const templateContent = getTemplateContent(templatePath);
+        return templateContent;
 
     } catch (error) {
-        console.log(error);
-        // if (error instanceof SyntaxError) {
-        //     throw new Error('Invalid templates configuration file');
-        // }
-        // if (error.code === 'ENOENT') {
-        //     throw new Error(`File not found: ${error.path}`);
-        // }
-        // throw new Error(`Failed to load template: ${error.message}`);
+        if (error instanceof SyntaxError) {
+            throw new Error('Invalid templates configuration file');
+        }
+        if (error.code === 'ENOENT') {
+            throw new Error(`File not found: ${error.path}`);
+        }
+        throw new Error(error);
     }
-
-    // const filePath = path.resolve(__dirname, '../templates/templates-paths.json');
-
-    // try {
-
-    //     const templatesPaths = fs.readFileSync(filePath, 'utf8');
-    //     const templates = JSON.parse(templatesPaths);
-
-    // language = language.toLowerCase();
-    // library = library.toLowerCase();
-
-    // const templatePath = Object.values(templates).find(value =>
-    //     value[language] && value[language][library]
-    // )?.[language]?.[library];
-
-
-    //     if (!templatePath) {
-    //         throw new Error("No available templates for the specified language and/or library");
-    //     }
-
-    //     const templatePathResolved = path.resolve(__dirname, '../../', templatePath);
-    //     const template = fs.readFileSync(templatePathResolved, 'utf8');
-    //     return template;
-
-    // } catch (error) {
-    // if (error instanceof SyntaxError) {
-    //     throw new Error('Invalid templates configuration file');
-    // }
-    // if (error.code === 'ENOENT') {
-    //     throw new Error(`File not found: ${error.path}`);
-    // }
-    // throw new Error(`Failed to load template: ${error.message}`);
-    // }
 }
 
 /**
