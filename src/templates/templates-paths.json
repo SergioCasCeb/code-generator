@@ -1,17 +1,17 @@
 {
     "http": {
         "javascript": {
-            "fetch": "https://raw.githubusercontent.com/SergioCasCeb/code-generator/refs/heads/main/src/templates/http/javascript/fetch/template.hbs",
-            "node-wot": "https://raw.githubusercontent.com/SergioCasCeb/code-generator/refs/heads/main/src/templates/multiple/javascript/node-wot/template.hbs"
+            "fetch": "http/javascript/fetch/template.hbs.js",
+            "node-wot": "multiple/javascript/node-wot/template.hbs"
         },
         "python": {
-            "requests": "https://raw.githubusercontent.com/SergioCasCeb/code-generator/refs/heads/main/src/templates/http/python/requests/template.hbs" 
+            "requests": "http/python/requests/template.hbs" 
         }
     },
     "modbus": {
         "javascript": {
-            "modbus-serial": "https://raw.githubusercontent.com/SergioCasCeb/code-generator/refs/heads/main/src/templates/modbus/javascript/modbus-serial/template.hbs",
-            "node-wot": "https://raw.githubusercontent.com/SergioCasCeb/code-generator/refs/heads/main/src/templates/multiple/javascript/node-wot/template.hbs"
+            "modbus-serial": "modbus/javascript/modbus-serial/template.hbs",
+            "node-wot": "multiple/javascript/node-wot/template.hbs"
         }
     }
 }

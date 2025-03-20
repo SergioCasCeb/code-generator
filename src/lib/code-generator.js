@@ -76,8 +76,9 @@ async function generateCode(userInputs, generateAI = false, aiTool) {
             }
 
         } else {
-            const template = await getTemplate(userInputs.programmingLanguage, userInputs.library);
+            const template = getTemplate(userInputs.programmingLanguage, userInputs.library);
             const templateInputs = await getTemplateInputs(userInputs.td, userInputs.affordance, userInputs.operation, userInputs.formIndex);
+            return template;
             // Compile the template with the filtered inputs
             const compiledTemplate = Handlebars.compile(template);
             return compiledTemplate(templateInputs);
@@ -99,16 +100,14 @@ async function generateCode(userInputs, generateAI = false, aiTool) {
  * @param { String } library 
  * @returns { String } file - the content of the template file
  */
-async function getTemplate(language, library) {
+function getTemplate(language, library) {
     try {
-
-        const fetchPaths = await fetch("https://raw.githubusercontent.com/SergioCasCeb/code-generator/refs/heads/main/src/templates/templates-paths.json");
-        const templatesPaths = await fetchPaths.json();
+        const fetchPaths = require('../templates/templates-paths.json');
 
         language = language.toLowerCase();
         library = library.toLowerCase();
 
-        const templatePath = Object.values(templatesPaths).find(value =>
+        const templatePath = Object.values(fetchPaths).find(value =>
             value[language] && value[language][library]
         )?.[language]?.[library];
 
@@ -116,20 +115,23 @@ async function getTemplate(language, library) {
             throw new Error("No available templates for the specified language and/or library");
         }
 
-        const fetchTemplate = await fetch(templatePath);
-        const template = await fetchTemplate.text();
+        const template = require(`../templates/${templatePath}`);
+        console.log(fetchPaths);
+        console.log(templatePath);
+        console.log(template);
+        // console.log(`../templates/${templatePath}`);
 
-        return template;
-
+        // return template;
 
     } catch (error) {
-        if (error instanceof SyntaxError) {
-            throw new Error('Invalid templates configuration file');
-        }
-        if (error.code === 'ENOENT') {
-            throw new Error(`File not found: ${error.path}`);
-        }
-        throw new Error(`Failed to load template: ${error.message}`);
+        console.log(error);
+        // if (error instanceof SyntaxError) {
+        //     throw new Error('Invalid templates configuration file');
+        // }
+        // if (error.code === 'ENOENT') {
+        //     throw new Error(`File not found: ${error.path}`);
+        // }
+        // throw new Error(`Failed to load template: ${error.message}`);
     }
 
     // const filePath = path.resolve(__dirname, '../templates/templates-paths.json');

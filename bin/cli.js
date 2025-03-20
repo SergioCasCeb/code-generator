@@ -2,7 +2,6 @@
 const { Command } = require("commander");
 const chalk = require("chalk");
 const { input, select, editor } = require('@inquirer/prompts');
-// const fileSelector = require('inquirer-file-selector');
 const { createSpinner } = require('nanospinner');
 const { generateCode } = require('../src/lib/code-generator.js');
 const { getTDProtocols, getAvailableLanguages, getAvailableLibraries, getAffordanceType, generateFile, parseTD, getTDAffordances, getFormIndexes, getOperations } = require('../src/util/util.js');
