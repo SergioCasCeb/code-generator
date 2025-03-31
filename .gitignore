@@ -9,12 +9,3 @@ dist
 
 # Ignore the generator output directory
 generator-output
-
-# Ignore my testing file
-test-handlerbars.js
-
-#ignore the css map file
-*.css.map
-
-#ignore the test-scripts file
-test-scripts.js

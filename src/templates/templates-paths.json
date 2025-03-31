@@ -2,7 +2,7 @@
     "http": {
         "javascript": {
             "fetch": "http/javascript/fetch/template.hbs",
-            "node-wot": "multiple/javascript/node-wot/template.hbs"
+            "node-wot": "http/javascript/node-wot/template.hbs"
         },
         "python": {
             "requests": "http/python/requests/template.hbs" 
@@ -11,7 +11,7 @@
     "modbus": {
         "javascript": {
             "modbus-serial": "modbus/javascript/modbus-serial/template.hbs",
-            "node-wot": "multiple/javascript/node-wot/template.hbs"
+            "node-wot": "modbus/javascript/node-wot/template.hbs"
         }
     }
 }

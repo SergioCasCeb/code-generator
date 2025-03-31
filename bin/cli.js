@@ -3,10 +3,14 @@ const { Command } = require("commander");
 const chalk = require("chalk");
 const { input, select, editor } = require('@inquirer/prompts');
 const { createSpinner } = require('nanospinner');
+const { addDefaults } = require('@thing-description-playground/defaults');
+const tdValidator = require('@thing-description-playground/core').tdValidator;
 const { generateCode } = require('../src/lib/code-generator.js');
 const { getTDProtocols, getAvailableLanguages, getAvailableLibraries, getAffordanceType, generateFile, parseTD, getTDAffordances, getFormIndexes, getOperations } = require('../src/util/util.js');
 const fs = require('fs');
 const path = require("path");
+const dotenv = require('dotenv');
+dotenv.config();
 
 /**
  * Provide a user friendly message when the user exits the program and throw an error if the reason for the exit is not an ExitPromptError
@@ -46,7 +50,7 @@ program
         if (options.interactive) {
             runInteractiveCLI();
         } else {
-            
+
             const requiredOptions = ['td', 'affordance', 'operation', 'language', 'library'];
             const missingOptions = requiredOptions.filter((option) => !options[option]);
 
@@ -55,7 +59,7 @@ program
                 program.help();
                 program.exit(1);
             }
-            
+
             runOneLineCLI(options);
         }
     });
@@ -78,6 +82,8 @@ async function runOneLineCLI(options) {
         const fileContent = fs.readFileSync(options.td, 'utf8');
         const parsedTD = parseTD(fileContent);
 
+        await validateTD(parsedTD);
+
         const generatorInputs = {
             td: parsedTD,
             affordance: options.affordance,
@@ -86,6 +92,31 @@ async function runOneLineCLI(options) {
             programmingLanguage: options.language.toLowerCase(),
             library: options.library.toLowerCase()
         };
+
+        //Get the AI tool if the generator type is AI
+        if (options.ai) {
+
+            //Get the AI configuration based on the selected AI tool
+            if (options.tool == "chatgpt") {
+                aiConfig = {
+                    apiKey: process.env.OPENAI_API_KEY,
+                    enpoint: process.env.OPENAI_ENDPOINT,
+                    model: process.env.OPENAI_MODEL
+                }
+            }
+            else if (options.tool == "gemini") {
+                aiConfig = {
+                    apiKey: process.env.GEMINI_API_KEY,
+                    model: process.env.GEMINI_MODEL
+                }
+            }
+            else {
+                aiConfig = {
+                    apiKey: process.env.GROQ_API_KEY,
+                    model: process.env.GROQ_MODEL
+                }
+            }
+        }
 
         const outputCode = await generateCode(generatorInputs, options.ai, options.tool ? options.tool : null);
         spinner.success(`Success: ${chalk.green('Code generated successfully!\n')}`);
@@ -130,6 +161,36 @@ async function tdInputType() {
 }
 
 /**
+ * Add defaults and validate the TD
+ * @param { Object } td 
+ * @returns { Boolean }
+ */
+async function validateTD(td) {
+    //add defaults to the td, to assure that all forms have an operation and contentType
+    addDefaults(td);
+
+    // Store log messages, to show only if the validation fails
+    let logMessages = [];
+
+    // Push log messages to the logMessages array
+    function validationLog(msg) {
+        logMessages.push(msg);
+    }
+
+    //run the tdValidator function
+    const validation = await tdValidator(JSON.stringify(td), validationLog, { checkDefaults: true, checkJsonLd: true, checkTmConformance: false });
+
+    //check al the report values to see if the validation passed
+    const validTD = Object.values(validation.report).every(value => value !== 'failed');
+
+    if (validTD) {
+        return true;
+    } else {
+        throw new Error('The Thing Description is invalid! Please check the following errors:\n' + logMessages.join('\n'));
+    }
+}
+
+/**
  * Get the TD from a file
  * @returns { Object } parsedTD
  */
@@ -155,7 +216,9 @@ async function getTDFile() {
 
         const fileContent = fs.readFileSync(filePath, 'utf8');
         const parsedTD = parseTD(fileContent);
+        await validateTD(parsedTD);
         return parsedTD;
+
 
     } catch (error) {
         console.log("Error: " + chalk.red(error.message));
@@ -175,6 +238,7 @@ async function getTDEditor() {
 
     try {
         const parsedTD = parseTD(td);
+        await validateTD(parsedTD);
         return parsedTD;
     }
     catch (error) {
@@ -418,6 +482,7 @@ async function runInteractiveCLI() {
     let affordance;
     let formIndex;
     let operation;
+    let aiConfig;
     let isAI = false;
     let aiTool;
     let tdProtocols;
@@ -462,6 +527,27 @@ async function runInteractiveCLI() {
     //Get the AI tool if the generator type is AI
     if (isAI) {
         aiTool = await getAITool();
+
+        //Get the AI configuration based on the selected AI tool
+        if (aiTool == "chatgpt") {
+            aiConfig = {
+                apiKey: process.env.OPENAI_API_KEY,
+                enpoint: process.env.OPENAI_ENDPOINT,
+                model: process.env.OPENAI_MODEL
+            }
+        }
+        else if (aiTool == "gemini") {
+            aiConfig = {
+                apiKey: process.env.GEMINI_API_KEY,
+                model: process.env.GEMINI_MODEL
+            }
+        }
+        else {
+            aiConfig = {
+                apiKey: process.env.GROQ_API_KEY,
+                model: process.env.GROQ_MODEL
+            }
+        }
     }
 
     //Get the programming language
@@ -488,7 +574,7 @@ async function runInteractiveCLI() {
 
     try {
         //Generate the code and stop the spinner if successful
-        const outputCode = await generateCode(generatorInputs, isAI, aiTool ? aiTool : null);
+        const outputCode = await generateCode(generatorInputs, isAI, aiTool ? aiTool : null, aiConfig);
         spinner.success(`Success: ${chalk.green('Code generated successfully!')}`)
         console.log(`${chalk.bold.yellow('CLI Options:')} ${returnCLIOptions(generatorInputs, isAI, aiTool, outputType)}`);
         if (outputType === 'file') {

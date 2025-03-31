@@ -129,33 +129,3 @@ The generated code is printed directly to the console in simple text format. AI 
 #### File Output
 
 A new folder called `generator-ouput` is created within the project and the generated code is saved to a file with the following naming convention `<affordance>_<operation>_<language>.<extension>`
-
----
-
-## UI Installation
-
-1. Navigate to the UI directory:
-
-    ```bash
-    cd code-generator/ui
-    ```
-
-2. Install all project dependencies:
-
-    ```bash
-    npm install
-    ```
-
-3. Build the project with Webpack:
-
-    ```bash
-    npm run build
-    ```
-
-4. Serve the dist folder with express:
-
-    ```bash
-    npm run serve
-    ```
-
-    This will allow you to utilize the UI, and output the generated code through the projects API.

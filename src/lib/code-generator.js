@@ -6,10 +6,7 @@ const generateChatGPTCode = require('../ai-generators/chatgpt-generator.js');
 const generateGeminiCode = require('../ai-generators/gemini-generator.js');
 const generateLlamaCode = require('../ai-generators/llama-generator.js');
 const URLToolkit = require('url-toolkit');
-const { addDefaults } = require('@thing-description-playground/defaults');
-const { tdValidator } = require('@thing-description-playground/core');
-const { getAffordanceType, getTemplateContent } = require('../util/util.js');
-
+const { getAffordanceType } = require('../util/util.js');
 
 //Register all helpers
 const handlebarsHelpers = [helpers, httpHelpers, modbusHelpers];
@@ -31,7 +28,7 @@ handlebarsHelpers.forEach(module => {
  * @param { string } aiTool - the AI tool to use for code generation
  * @returns { String } - the generated code
  */
-async function generateCode(userInputs, generateAI = false, aiTool) {
+async function generateCode(userInputs, generateAI = false, aiTool, aiConfig) {
     //Basic input validation check
     if (!userInputs || (!userInputs.programmingLanguage || !userInputs.library || !userInputs.td || !userInputs.affordance || !userInputs.operation)) {
         if (!userInputs) {
@@ -63,20 +60,20 @@ async function generateCode(userInputs, generateAI = false, aiTool) {
             }
 
             if (aiTool === "chatgpt") {
-                return generateChatGPTCode(JSON.stringify(userInputs));
+                return generateChatGPTCode(JSON.stringify(userInputs), aiConfig);
             }
             else if (aiTool === "gemini") {
-                return generateGeminiCode(JSON.stringify(userInputs));
+                return generateGeminiCode(JSON.stringify(userInputs), aiConfig);
             }
             else if (aiTool === "llama") {
-                return generateLlamaCode(JSON.stringify(userInputs));
+                return generateLlamaCode(JSON.stringify(userInputs), aiConfig);
             }
             else {
                 throw new Error("The specified AI tool is not supported");
             }
 
         } else {
-            const template = getTemplate(userInputs.programmingLanguage, userInputs.library);
+            const template = await getTemplate(userInputs.programmingLanguage, userInputs.library);
             const templateInputs = await getTemplateInputs(userInputs.td, userInputs.affordance, userInputs.operation, userInputs.formIndex);
             // Compile the template with the filtered inputs
             const compiledTemplate = Handlebars.compile(template);
@@ -99,7 +96,7 @@ async function generateCode(userInputs, generateAI = false, aiTool) {
  * @param { String } library 
  * @returns { String } file - the content of the template file
  */
-function getTemplate(language, library) {
+async function getTemplate(language, library) {
     try {
         const fetchPaths = require('../templates/templates-paths.json');
 
@@ -114,7 +111,8 @@ function getTemplate(language, library) {
             throw new Error("No available templates for the specified language and/or library");
         }
 
-        const templateContent = getTemplateContent(templatePath);
+        const res = await fetch(`https://raw.githubusercontent.com/SergioCasCeb/code-generator/refs/heads/main/src/templates/${templatePath}`);
+        const templateContent = await res.text();
         return templateContent;
 
     } catch (error) {
@@ -122,9 +120,9 @@ function getTemplate(language, library) {
             throw new Error('Invalid templates configuration file');
         }
         if (error.code === 'ENOENT') {
-            throw new Error(`File not found: ${error.path}`);
+            throw new Error(`File not found`);
         }
-        throw new Error(error);
+        throw new Error(`An error occurred while getting the template: ${error.message}`);
     }
 }
 
@@ -147,62 +145,26 @@ async function getTemplateInputs(td, affordance, operation, formIndex) {
         "operation": null,
     }
 
-    //add defaults to the td, to assure that all forms have an operation and contentType
-    const isValid = await validateTD(td);
+    //Check the operation and formIndex to get the inner values of the affordance
+    const affordanceType = getAffordanceType(td, affordance);
+    templateValues.affordanceType = affordanceType;
 
-    if (isValid) {
-        //Check the operation and formIndex to get the inner values of the affordance
-        const affordanceType = getAffordanceType(td, affordance);
-        templateValues.affordanceType = affordanceType;
+    const forms = td[affordanceType][affordance]["forms"];
+    const form = getForm(forms, operation, formIndex);
 
-        const forms = td[affordanceType][affordance]["forms"];
-        const form = getForm(forms, operation, formIndex);
+    templateValues.affordanceObject = td[affordanceType][affordance];
+    templateValues.form = form;
 
-        templateValues.affordanceObject = td[affordanceType][affordance];
-        templateValues.form = form;
-
-        //treat the unsubscribe and unobserve operations as subscribe and observe
-        if (operation === "unsubscribeevent" || operation === "unobserveproperty") {
-            operation = operation.replace("un", "");
-        }
-        templateValues.operation = operation;
-
-        const absoluteURL = getAbsoluteURL(td.base, form["href"]);
-        templateValues.absoluteURL = absoluteURL;
-
-        return templateValues;
+    //treat the unsubscribe and unobserve operations as subscribe and observe
+    if (operation === "unsubscribeevent" || operation === "unobserveproperty") {
+        operation = operation.replace("un", "");
     }
-}
+    templateValues.operation = operation;
 
-/**
- * Add defaults and validate the TD
- * @param { Object } td 
- * @returns { Boolean }
- */
-async function validateTD(td) {
-    //add defaults to the td, to assure that all forms have an operation and contentType
-    addDefaults(td);
+    const absoluteURL = getAbsoluteURL(td.base, form["href"]);
+    templateValues.absoluteURL = absoluteURL;
 
-    // Store log messages, to show only if the validation fails
-    let logMessages = [];
-
-    // Push log messages to the logMessages array
-    function validationLog(msg) {
-        logMessages.push(msg);
-    }
-
-    //run the tdValidator function
-    const validation = await tdValidator(JSON.stringify(td), validationLog, { checkDefaults: true, checkJsonLd: true, checkTmConformance: false });
-
-    //check al the report values to see if the validation passed
-    const validTD = Object.values(validation.report).every(value => value !== 'failed');
-
-    if (validTD) {
-        return true;
-    } else {
-        const errorMsg = logMessages.join('\n');
-        throw new Error(errorMsg);
-    }
+    return templateValues;
 }
 
 /**

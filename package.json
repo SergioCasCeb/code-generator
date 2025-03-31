@@ -1,18 +1,23 @@
 {
-  "name": "code-generator",
+  "name": "@thingweb/code-gen",
   "version": "1.0.0",
+  "description": "This package provides a client code generator for the Thing Descriptions.",
   "main": "./src/lib/code-generator.js",
   "bin": {
     "generate-code": "./bin/cli.js"
   },
-  "scripts": {
-    "test": "test"
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/eclipse-thingweb/td-tools.git",
+    "directory": "node/code-gen"
   },
-  "author": "",
-  "license": "ISC",
-  "description": "",
+  "author": "Eclipse Thingweb <thingweb-dev@eclipse.org> (https://thingweb.io/)",
+  "license": "EPL-2.0 OR W3C-20150513",
+  "bugs": {
+    "url": "https://github.com/eclipse-thingweb/code-gen/issues"
+  },
+  "homepage": "https://github.com/eclipse-thingweb/code-gen#readme",
   "dependencies": {
-    "@azure/identity": "^4.6.0",
     "@google/generative-ai": "^0.21.0",
     "@inquirer/prompts": "^7.2.3",
     "@thing-description-playground/core": "^1.4.0",
@@ -29,8 +34,5 @@
     "nanospinner": "^1.2.2",
     "openai": "^4.79.1",
     "url-toolkit": "^2.2.5"
-  },
-  "devDependencies": {
-    "nodemon": "^3.1.9"
   }
 }

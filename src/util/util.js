@@ -127,21 +127,6 @@ function getOperations(td, affordanceType, affordance, formIndex) {
 }
 
 /**
- * Get the content of a template file and return it as a string
- * @param { String } filePath 
- * @returns { String } fileContent
- */
-function getTemplateContent(filePath) {
-    const fullPath = path.join('src', 'templates', filePath);
-    try {
-        const fileContent = fs.readFileSync(fullPath, 'utf8');
-        return fileContent;
-    } catch (error) {
-        throw new Error("Could not find the template file");
-    }
-}
-
-/**
  * Get the protocol schemes in a TD, check if they are available in the templates and only return the available ones
  * @param { string } td 
  * @param { string } file - the file with the available protocols
@@ -194,7 +179,7 @@ function getAvailableLanguages(protocols) {
         });
 
         availableLanguages = [...new Set(availableLanguages)];
-
+        
         return availableLanguages;
 
     } catch (error) {
@@ -222,7 +207,6 @@ function getAvailableLibraries(selectedLanguage, languageList) {
     return availableLibraries;
 }
 
-//TODO: should the output file be in the project directory or in the current directory?
 /**
  * Generate a file with the output code
  * @param { String } affordance 
@@ -265,7 +249,6 @@ module.exports = {
     getTDAffordances,
     getFormIndexes,
     getOperations,
-    getTemplateContent,
     getTDProtocols,
     getAvailableLanguages,
     getAvailableLibraries,
